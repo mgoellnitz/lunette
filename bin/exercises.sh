@@ -18,7 +18,7 @@
 MYNAME=`basename $0`
 
 PATTERN=${1}
-PROFILE=$(ls ~/.session.*${PATTERN}*|tail -1)
+PROFILE=$(ls ~/.session.*${PATTERN}*|head -1)
 
 if [ -z "$PROFILE" ] ; then
   echo "Error: No active session found. Did you issue 'create session'?"
