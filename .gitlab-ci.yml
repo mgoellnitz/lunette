@@ -25,6 +25,7 @@ stages:
 build:
   stage: lunette
   script: apt-get update ; apt-get install -yq jq file curl bash bash-completion ; gradle build
+  script: find -type f
   script: unzip build/distributions/*.zip
   artifacts:
     paths:
