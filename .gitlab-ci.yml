@@ -24,10 +24,11 @@ stages:
 
 build:
   stage: lunette
-  script: apt-get update ; apt-get install -yq jq file curl mercurial git bash bash-completion ; gradle build
+  script: apt-get update ; apt-get install -yq jq file curl bash bash-completion ; gradle build
+  script: unzip build/distributions/*.zip
   artifacts:
     paths:
-    - build/distributions/*
+    - iServ*
     expire_in: 5 days
     name: ${CI_BUILD_STAGE}
 
