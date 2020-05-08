@@ -17,6 +17,28 @@
 #
 MYNAME=`basename $0`
 
+function usage {
+   echo "Usage: $MYNAME [-p]"
+   echo ""
+   echo "  -p list exercises from the past"
+   echo ""
+   exit
+}
+
+URLADDON=""
+
+PSTART=`echo $1|sed -e 's/^\(.\).*/\1/g'`
+while [ "$PSTART" = "-" ] ; do
+  if [ "$1" = "-h" ] ; then
+    usage
+  fi
+  if [ "$1" = "-p" ] ; then
+    URLADDON='?filter%5Bstatus%5D=past'
+  fi
+  shift
+  PSTART=`echo $1|sed -e 's/^\(.\).*/\1/g'`
+done
+
 PATTERN=${1}
 PROFILE=$(ls ~/.session.*${PATTERN}*|head -1)
 
@@ -36,5 +58,6 @@ if [ ! -z "$SESSIONCHECK" ] ; then
   exit
 fi
 
-curl -b ~/.iserv.$USERNAME $BACKEND/exercise 2> /dev/null|grep https|grep exercise.show | \
+URL=$BACKEND/exercise$URLADDON
+curl -b ~/.iserv.$USERNAME $URL 2> /dev/null|grep https|grep exercise.show | \
       sed -e 's/^.*exercise.show.[0-9]*\".//g'|sed -e 's/..a...td.*$//g'
