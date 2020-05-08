@@ -18,9 +18,13 @@
 MYNAME=`basename $0`
 
 function usage {
-   echo "Usage: $MYNAME [-p]"
+   echo "Usage: $MYNAME [-p] [pattern]"
    echo ""
-   echo "  -p list exercises from the past"
+   echo "  -p       list exercises from the past"
+   echo "  pattern  username or fragment of a username to list exercises for"
+   echo ""
+   echo "For the $0 command to work an active session"
+   echo "for the given user must be present."
    echo ""
    exit
 }
@@ -60,4 +64,4 @@ fi
 
 URL=$BACKEND/exercise$URLADDON
 curl -b ~/.iserv.$USERNAME $URL 2> /dev/null|grep https|grep exercise.show | \
-      sed -e 's/^.*exercise.show.[0-9]*\".//g'|sed -e 's/..a...td.*$//g'
+      sed -e 's/^.*exercise.show.\([0-9]*\)\"./\1 /g'|sed -e 's/..a...td.*$//g'

@@ -72,7 +72,7 @@ To list the current exercises, issue the command
 
 Without any parameters this command would list the exercises of one random user
 with a currently valid session. So, if you only have one open session, this is
-sufficient. If you are working with multiply sessions in parallel, at least
+sufficient. If you are working with multiple sessions in parallel, at least
 portions of the username need to be given as a parameter.
 
 ```
@@ -80,6 +80,12 @@ $ ./exercises.sh claire
 Exercises for claire.delune@https://bornbrook.de/iserv
 ```
 
+It is also possible to list past exercises with an optional `-p` parameter.
+
+```
+$ ./exercises.sh -p claire
+Exercises for claire.delune@https://bornbrook.de/iserv
+```
 
 ## Related Repositories on Github
 
