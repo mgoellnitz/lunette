@@ -87,6 +87,38 @@ $ ./exercises.sh -p claire
 Exercises for claire.delune@https://bornbrook.de/iserv
 ```
 
+* Show one Exercise
+
+To show the details of one single exercise, issue the command
+
+```
+./exercise.sh exerciseid
+```
+
+with an exerciseid drawn from the exercise listing command. As with other 
+commands an optional pattern can be given to select the active iServ session
+to use.
+
+```
+./exercise.sh -u claire exerciseid
+```
+
+To download the attachments to a local folder `exerciseid/`, add the download
+option.
+
+```
+./exercise.sh -d exerciseid
+```
+
+This will result in a subfolder of the current folder named `exerciseid` 
+containing the files mentioned in the exercise details.
+
+## Quickly fetch all Exercises as a local Mirror
+
+```
+for e in $(bin/exercises.sh -p|cut -d ' ' -f 1) ; do bin/exercise.sh -d $e > $e.txt ; done
+```
+
 ## Related Repositories on Github
 
 This is a deliberate collection of repositories relating to [iServ][iserv].
