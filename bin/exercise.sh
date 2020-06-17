@@ -91,15 +91,16 @@ echo -n $STARTDATE
 echo -n ' -> ' 
 echo -n $ENDDATE
 echo ": $TITLE ($AUTHOR)"
-tail -$DESC_TAIL_COUNT $TMPFILE|head -$DESC_LINE_COUNT|sed -e 's/<br..>//g'|sed -e 's/<.td>//g'|sed -e 's/<.tr>//g'|sed -e 's/^.*<td>//g'
-if [ $(cat $TMPFILE|grep iserv.img.default|wc -l) -gt 1 ] ; then
+tail -$DESC_TAIL_COUNT $TMPFILE|head -$DESC_LINE_COUNT|sed -e 's/<br..>//g'|sed -e 's/<.td>//g'|sed -e 's/<.tr>//g'|sed -e 's/^.*<td.*>//g'
+if [ $(cat $TMPFILE|grep iserv.img.default|wc -l) -ge 1 ] ; then
   echo ""
   echo "Attachments:"
-  cat $TMPFILE|grep iserv.img.default|sed -e 's/^.*li..a.href..\(.*\)".*class..text.*iserv.img.default.*".\(.*\)/\2/g'
+  cat $TMPFILE|grep iserv.img.default|sed -e 's/^.*li.class.*a.href."\(.*\)"..img.class.*src=".*png".\(.*\)/\2/g'
   if [ "$DOWNLOAD" = "true" ] ; then
     mkdir -p $EXERCISE
-    for d in $(cat $TMPFILE|grep iserv.img.default|sed -e 's/^.*li..a.href...iserv\(.*\)".*class..text.*iserv.img.default.*".\(.*\)/\1/g') ; do
-      FILENAME=$(cat $TMPFILE|grep iserv.img.default|grep $d|sed -e 's/^.*li..a.href..\(.*\)".*class..text.*iserv.img.default.*".\(.*\)/\2/g')
+    for d in $(cat $TMPFILE|grep iserv.img.default|sed -e 's/^.*li.class.*a.href.".*\(\/exercise.*\)"..img.class.*src=".*png".\(.*\)/\1/g') ; do
+      FILENAME=$(cat $TMPFILE|grep iserv.img.default|grep $d|sed -e 's/^.*li.class.*a.href.".*\(\/exercise.*\)"..img.class.*src=".*png".\(.*\)/\2/g')
+      # echo $BACKEND$d $EXERCISE/$FILENAME
       curl  -b ~/.iserv.$USERNAME -o "$EXERCISE/$FILENAME" $BACKEND$d 2> /dev/null
       # curl  -b ~/.iserv.$USERNAME -o $EXERCISE/$(echo $d|cut -d '/' -f 4) $BACKEND$d
     done
