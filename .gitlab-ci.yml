@@ -31,7 +31,7 @@ build:
   artifacts:
     paths:
     - iServ*
-    expire_in: 5 days
+    expire_in: 60 days
     name: ${CI_BUILD_STAGE}
 
 cache:
