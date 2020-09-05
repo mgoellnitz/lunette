@@ -76,14 +76,23 @@ sufficient. If you are working with multiple sessions in parallel, at least
 portions of the username need to be given as a parameter.
 
 ```
-$ ./exercises.sh claire
+$ ./exercises.sh -u claire
 Exercises for claire.delune@https://bornbrook.de/iserv
+```
+
+If the list grows too big, you might want to filter for certain elements in the
+title.
+
+```
+$ ./exercises.sh Maths
+Exercises for claire.delune@https://bornbrook.de/iserv
+1234 Maths 6a - Fractions
 ```
 
 It is also possible to list past exercises with an optional `-p` parameter.
 
 ```
-$ ./exercises.sh -p claire
+$ ./exercises.sh -p -u claire
 Exercises for claire.delune@https://bornbrook.de/iserv
 ```
 

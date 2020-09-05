@@ -19,7 +19,7 @@ MYNAME=`basename $0`
 TMPFILE="/tmp/lunette.html"
 
 function usage {
-   echo "Usage: $MYNAME -u username exerciseid"
+   echo "Usage: $MYNAME [-u username] [-d] exerciseid"
    echo ""
    echo "  -u pattern     login of the user to read given exercise for"
    echo "  -d             download exercise attachments into a subfolder"
@@ -113,4 +113,4 @@ if [ $(cat $TMPFILE|grep -n -A1 panel-body|grep ':'|wc -l) -gt 1 ] ; then
   tail -$CORR_TAIL_COUNT $TMPFILE|head -$CORR_LINE_COUNT|sed -e 's/<br..>//g'|sed -e 's/<.td>//g'|sed -e 's/<.tr>//g'|sed -e 's/^.*<td>//g'
 fi
 
-# rm $TMPFILE
+rm $TMPFILE

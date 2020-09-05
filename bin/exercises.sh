@@ -18,10 +18,11 @@
 MYNAME=`basename $0`
 
 function usage {
-   echo "Usage: $MYNAME [-p] [pattern]"
+   echo "Usage: $MYNAME [-p] [-u pattern] [filter]"
    echo ""
-   echo "  -p       list exercises from the past"
-   echo "  pattern  username or fragment of a username to list exercises for"
+   echo "  -p          list exercises from the past"
+   echo "  -u pattern  username or fragment of a username to list exercises for"
+   echo "      ilter   expression for the exercise titles"
    echo ""
    echo "For the $0 command to work an active session"
    echo "for the given user must be present."
@@ -39,11 +40,15 @@ while [ "$PSTART" = "-" ] ; do
   if [ "$1" = "-p" ] ; then
     URLADDON='?filter%5Bstatus%5D=past'
   fi
+  if [ "$1" = "-u" ] ; then
+    shift
+    PATTERN=${1}
+  fi
   shift
   PSTART=`echo $1|sed -e 's/^\(.\).*/\1/g'`
 done
+FILTER=${1:-.*}
 
-PATTERN=${1}
 PROFILE=$(ls ~/.session.*${PATTERN}*|head -1)
 
 if [ -z "$PROFILE" ] ; then
@@ -64,4 +69,4 @@ fi
 
 URL=$BACKEND/exercise$URLADDON
 curl -b ~/.iserv.$USERNAME $URL 2> /dev/null|grep https|grep exercise.show | \
-      sed -e 's/^.*exercise.show.\([0-9]*\)\"./\1 /g'|sed -e 's/..a...td.*$//g'
+      sed -e 's/^.*exercise.show.\([0-9]*\)\"./\1 /g'|sed -e 's/..a...td.*$//g'|grep "${FILTER}"
