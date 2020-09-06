@@ -43,8 +43,8 @@ function usage {
    exit
 }
 
-STARTDATE="$(date -d '8' "+%d.%m.%Y %H:%M")"
-ENDDATE="$(date -d '+6 days 23' "+%d.%m.%Y %H:%M")"
+STARTDATE="$(date -d '9' "+%d.%m.%Y %H:%M")"
+ENDDATE="$(date -d '+6 days 20' "+%d.%m.%Y %H:%M")"
 
 # TYPE: confirmation|files|text
 TYPE="confirmation"
@@ -179,7 +179,7 @@ if [ ! -z "$PARTICIPANTGROUP" ] ; then
     fi
   fi
   PARTICIPANTGROUP=$(grep "$FILTER" $GROUPLIST)
-  FORM="$(echo $PARTICIPANTGROUP|sed -e 's/^[a-z0-9]*\.//g'|sed -e 's/\.20[0-9][0-9]//g'|sed -e 's/\.[a-z][a-z]*//g'|sed -e 's/[a-z][a-z]*\.//g') "
+  FORM="$(echo $PARTICIPANTGROUP|sed -e 's/^[a-z0-9]*\.//g'|sed -e 's/\.20[0-9][0-9]//g'|sed -e 's/\.[a-z][a-z]*//g'|sed -e 's/[a-z][a-z]*\.//g')"
   TITLEPREFIX="$FORM "
 fi
 
@@ -210,7 +210,7 @@ if [ ! -z "$UNTIS" ] ; then
   if [ ! -z "$UNTIS_URL" ] ; then
     $(dirname $UNTIS)/fetchtimetable.sh
   fi
-  # echo $UNTIS -z -f "$FORM" -s "$COURSE"
+  echo $UNTIS -z -f "$FORM" -s "$COURSE"
   UNTIS_TIME=$($UNTIS -z -f "$FORM" -s "$COURSE")
   if [ $(echo "$UNTIS_TIME"|grep "Please fetch"|wc -l) -gt 0 ] ; then
     echo "WARNING: Current Untis timetable data is missing."

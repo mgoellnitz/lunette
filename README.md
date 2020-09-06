@@ -2,6 +2,7 @@
 
 [![License](https://img.shields.io/github/license/mgoellnitz/lunette.svg)](https://github.com/mgoellnitz/lunette/blob/master/LICENSE)
 [![Build](https://img.shields.io/gitlab/pipeline/backendzeit/lunette.svg)](https://gitlab.com/backendzeit/lunette/pipelines)
+[![Download](https://img.shields.io/badge/Download-Snapshot-blue)](https://gitlab.com/backendzeit/lunette/-/jobs/artifacts/master/download?job=build)
 
 "Hacking iServ for Fun and ... whatever."
 
