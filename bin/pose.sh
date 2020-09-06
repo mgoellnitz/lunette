@@ -206,6 +206,10 @@ if [ ! -z "$UNTIS" ] ; then
       fi
     fi
   fi
+  # timetable can be fetch silently
+  if [ ! -z "$UNTIS_URL" ] ; then
+    $(dirname $UNTIS)/fetchtimetable.sh
+  fi
   # echo $UNTIS -z -f "$FORM" -s "$COURSE"
   UNTIS_TIME=$($UNTIS -z -f "$FORM" -s "$COURSE")
   if [ $(echo "$UNTIS_TIME"|grep "Please fetch"|wc -l) -gt 0 ] ; then
