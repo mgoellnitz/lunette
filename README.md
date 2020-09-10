@@ -10,7 +10,8 @@ After getting past the cookie and login stuff I started to address the following
 objectives with a generic collection of command line scripts.
 
 * collecting tasks and materials for offline use in student's view
-* collection submission for tasks for offline use in teacher's view
+* collecting submissions for tasks for offline use in teacher's view
+* easier handling of new exercises with automated parameter selection
 
 Sorry to tell you that due to personal preferences in our household all these
 scripts are and will be only linux-tested.
@@ -29,7 +30,7 @@ mysterious, it translates very well:
 lunette: telescope, Fr.
 
 The real origin of the name is the acronym of an acronym for a given instance
-of [iServ][iserv] with just `te` appended to sound be bit french.
+of [iServ][iserv] with just `te` appended to sound a bit french.
 
 ## Usage
 
@@ -53,7 +54,7 @@ Password for rainer.hohn@https://mdg-ni.de/iserv:
 ```
 
 If no backend is issued, the contents
-of the environent variable `ISERV_BACKEN` are taken into account.
+of the environent variable `ISERV_BACKEND` are taken into account.
 
 ```
 export ISERV_BACKEND=https://hansa-schule.net/iserv
