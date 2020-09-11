@@ -16,6 +16,7 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 MYNAME=`basename $0`
+MYDIR=`dirname $0`
 TMPFILE="/tmp/lunette.html"
 GROUPLIST="/tmp/lunette.groups"
 USERLIST="/tmp/lunette.users"
@@ -112,23 +113,6 @@ while [ "$PSTART" = "-" ] ; do
 done
 FILENAME=${1}
 
-PROFILE=$(ls ~/.session.*${PATTERN}*|head -1)
-if [ -z "$PROFILE" ] ; then
-  echo "Error: No active session found. Did you issue 'create session'?"
-  exit
-fi
-
-BACKEND=$(cat $PROFILE)
-PROFILE=$(basename $PROFILE)
-USERNAME=$(echo ${PROFILE#.session.})
-echo "Creating Exercise for $USERNAME@$BACKEND"
-
-SESSIONCHECK=$(curl -b ~/.iserv.$USERNAME $BACKEND/exercise 2> /dev/null|grep 'Redirecting.to.*.login')
-if [ ! -z "$SESSIONCHECK" ] ; then
-  echo "Error: Session expired."
-  exit
-fi
-
 if [ ! -f "$FILENAME" ] ; then
   echo "File \"$FILENAME\" not found."
   echo ""
@@ -140,7 +124,39 @@ if [ -z "$TEACHER" ] ; then
   usage
 fi
 
-curl -b ~/.iserv.$USERNAME $BACKEND/exercise/manage/exercise/add 2> /dev/null >$TMPFILE
+PROFILE=$(ls ~/.session.*${PATTERN}*|head -1)
+if [ -z "$PROFILE" ] ; then
+  echo "Error: No active session found. Did you issue 'create session'?"
+  $MYDIR/createsession.sh $PATTERN
+  PROFILE=$(ls ~/.session.*${PATTERN}*|head -1)
+  BACKEND=$(cat $PROFILE)
+  PROFILE=$(basename $PROFILE)
+  USERNAME=$(echo ${PROFILE#.session.})
+  curl -b ~/.iserv.$USERNAME $BACKEND/exercise/manage/exercise/add 2> /dev/null >$TMPFILE
+else
+  BACKEND=$(cat $PROFILE)
+  PROFILE=$(basename $PROFILE)
+  USERNAME=$(echo ${PROFILE#.session.})
+  curl -b ~/.iserv.$USERNAME $BACKEND/exercise/manage/exercise/add 2> /dev/null >$TMPFILE
+  SESSIONCHECK=$(grep 'Redirecting.to.*.login' $TMPFILE)
+  if [ ! -z "$SESSIONCHECK" ] ; then
+    echo "Error: Session expired."
+    $MYDIR/createsession.sh $USERNAME
+    curl -b ~/.iserv.$USERNAME $BACKEND/exercise/manage/exercise/add 2> /dev/null >$TMPFILE
+  fi
+fi
+echo "Creating Exercise for $USERNAME@$BACKEND"
+SESSIONCHECK=$(grep 'Redirecting.to.*.login' $TMPFILE)
+if [ ! -z "$SESSIONCHECK" ] ; then
+  echo "Not logged in."
+  exit 1
+fi
+
+AUTHCHECK=$(grep 'missing.*required.*authorization' $TMPFILE|wc -l)
+if [ "$AUTHCHECK" -gt 0 ] ; then
+  echo "You may not pose exercises on this system as user $USERNAME@$BACKEND."
+  exit 1
+fi
 TAGS=""
 for tag in $(grep option.va /tmp/lunette.html |sed -e 's/.*"\(.*\)".*/\1/g'|grep ^[0-9]) ; do 
   value=$(grep -A2 value.\"$tag\" $TMPFILE|tail -1|sed -e 's/\ *>\([A-Za-z]*\).*/\1/g')

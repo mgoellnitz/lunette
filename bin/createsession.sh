@@ -41,6 +41,7 @@ fi
 echo -n "Password for $USERNAME@$BACKEND: "
 read -s PASSWORD
 
+echo ""
 echo Creating session for $USERNAME@$BACKEND
 echo "$BACKEND" > ~/.session.$USERNAME
 # curl -D - $BACKEND/login 2> /dev/null > /dev/null
