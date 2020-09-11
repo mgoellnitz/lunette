@@ -38,12 +38,12 @@ assertEquals "Unexpected session creation output" "$OUTPUT" "Error: IServ Backen
 
 OUTPUT=$($CWD/bin/createsession.sh rainer.hohn https://avh.hamburg/iserv|tail -1)
 # echo "$OUTPUT"
-assertEquals "Unexpected session creation output" "$OUTPUT" "Password for rainer.hohn@https://avh.hamburg/iserv: Creating session for rainer.hohn@https://avh.hamburg/iserv"
+assertEquals "5 Unexpected session creation output" "$OUTPUT" "Creating session for rainer.hohn@https://avh.hamburg/iserv"
 
 export ISERV_BACKEND=https://avh.hamburg/iserv
 OUTPUT=$($CWD/bin/createsession.sh rainer.hohn|tail -1)
 # echo "$OUTPUT"
-assertEquals "Unexpected session creation output" "$OUTPUT" "Password for rainer.hohn@https://avh.hamburg/iserv: Creating session for rainer.hohn@https://avh.hamburg/iserv"
+assertEquals "Unexpected session creation output" "$OUTPUT" "Creating session for rainer.hohn@https://avh.hamburg/iserv"
 
 # cleanup test
 after
