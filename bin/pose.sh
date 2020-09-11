@@ -124,19 +124,20 @@ if [ -z "$TEACHER" ] ; then
   usage
 fi
 
-PROFILE=$(ls ~/.session.*${PATTERN}*|head -1)
+PROFILE=$(ls ~/.iserv.*${PATTERN}*|head -1)
 if [ -z "$PROFILE" ] ; then
   echo "Error: No active session found. Did you issue 'create session'?"
+  echo ""
   $MYDIR/createsession.sh $PATTERN
-  PROFILE=$(ls ~/.session.*${PATTERN}*|head -1)
-  BACKEND=$(cat $PROFILE)
+  PROFILE=$(ls ~/.iserv.*${PATTERN}*|head -1)
+  BACKEND=$(cat $PROFILE|grep ISERV_BACKEND|sed -e 's/#.ISERV_BACKEND=//g')
   PROFILE=$(basename $PROFILE)
-  USERNAME=$(echo ${PROFILE#.session.})
+  USERNAME=$(echo ${PROFILE#.iserv.})
   curl -b ~/.iserv.$USERNAME $BACKEND/exercise/manage/exercise/add 2> /dev/null >$TMPFILE
 else
-  BACKEND=$(cat $PROFILE)
+  BACKEND=$(cat $PROFILE|grep ISERV_BACKEND|sed -e 's/#.ISERV_BACKEND=//g')
   PROFILE=$(basename $PROFILE)
-  USERNAME=$(echo ${PROFILE#.session.})
+  USERNAME=$(echo ${PROFILE#.iserv.})
   curl -b ~/.iserv.$USERNAME $BACKEND/exercise/manage/exercise/add 2> /dev/null >$TMPFILE
   SESSIONCHECK=$(grep 'Redirecting.to.*.login' $TMPFILE)
   if [ ! -z "$SESSIONCHECK" ] ; then

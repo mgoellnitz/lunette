@@ -16,6 +16,8 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 MYNAME=`basename $0`
+MYDIR=`dirname $0`
+TMPFILE="/tmp/lunette.html"
 
 function usage {
    echo "Usage: $MYNAME [-p] [-u pattern] [filter]"
@@ -49,22 +51,33 @@ while [ "$PSTART" = "-" ] ; do
 done
 FILTER=${1:-.*}
 
-PROFILE=$(ls ~/.session.*${PATTERN}*|head -1)
-
+PROFILE=$(ls ~/.iserv.*${PATTERN}*|head -1)
 if [ -z "$PROFILE" ] ; then
   echo "Error: No active session found. Did you issue 'create session'?"
-  exit
+  echo ""
+  $MYDIR/createsession.sh $PATTERN
+  PROFILE=$(ls ~/.iserv.*${PATTERN}*|head -1)
+  BACKEND=$(cat $PROFILE|grep ISERV_BACKEND|sed -e 's/#.ISERV_BACKEND=//g')
+  PROFILE=$(basename $PROFILE)
+  USERNAME=$(echo ${PROFILE#.iserv.})
+  curl -b ~/.iserv.$USERNAME $BACKEND/exercise 2> /dev/null >$TMPFILE
+else
+  BACKEND=$(cat $PROFILE|grep ISERV_BACKEND|sed -e 's/#.ISERV_BACKEND=//g')
+  PROFILE=$(basename $PROFILE)
+  USERNAME=$(echo ${PROFILE#.iserv.})
+  curl -b ~/.iserv.$USERNAME $BACKEND/exercise 2> /dev/null >$TMPFILE
+  SESSIONCHECK=$(grep 'Redirecting.to.*.login' $TMPFILE)
+  if [ ! -z "$SESSIONCHECK" ] ; then
+    echo "Error: Session expired."
+    $MYDIR/createsession.sh $USERNAME
+    curl -b ~/.iserv.$USERNAME $BACKEND/exercise 2> /dev/null >$TMPFILE
+  fi
 fi
-
-BACKEND=$(cat $PROFILE)
-PROFILE=$(basename $PROFILE)
-USERNAME=$(echo ${PROFILE#.session.})
 echo "Exercises for $USERNAME@$BACKEND"
-
-SESSIONCHECK=$(curl -b ~/.iserv.$USERNAME $BACKEND/exercise 2> /dev/null|grep 'Redirecting.to.*.login')
+SESSIONCHECK=$(grep 'Redirecting.to.*.login' $TMPFILE)
 if [ ! -z "$SESSIONCHECK" ] ; then
-  echo "Error: Session expired."
-  exit
+  echo "Not logged in."
+  exit 1
 fi
 
 URL=$BACKEND/exercise$URLADDON

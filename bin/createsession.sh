@@ -43,9 +43,10 @@ read -s PASSWORD
 
 echo ""
 echo Creating session for $USERNAME@$BACKEND
-echo "$BACKEND" > ~/.session.$USERNAME
 # curl -D - $BACKEND/login 2> /dev/null > /dev/null
 rm -f ~/.iserv.$USERNAME
 DATA=$(curl -c ~/.iserv.$USERNAME -H "Content-type: application/x-www-form-urlencoded" -X POST -D - \
             -d "_username=$USERNAME&_password=$PASSWORD&_remember_me=on" $BACKEND/login_check 2> /dev/null)
+echo "#" >> ~/.iserv.$USERNAME
+echo "# ISERV_BACKEND=$BACKEND" >> ~/.iserv.$USERNAME
 # echo $DATA
