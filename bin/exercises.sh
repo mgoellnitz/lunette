@@ -38,6 +38,7 @@ PSTART=`echo $1|sed -e 's/^\(.\).*/\1/g'`
 while [ "$PSTART" = "-" ] ; do
   if [ "$1" = "-h" ] ; then
     usage
+    exit
   fi
   if [ "$1" = "-p" ] ; then
     URLADDON='?filter%5Bstatus%5D=past'
@@ -56,6 +57,9 @@ if [ -z "$PROFILE" ] ; then
   echo "Error: No active session found. Did you issue 'create session'?"
   echo ""
   $MYDIR/createsession.sh $PATTERN
+  if [ -z "$PATTERN" ] ; then
+    exit 1
+  fi
   PROFILE=$(ls ~/.iserv.*${PATTERN}*|head -1)
   BACKEND=$(cat $PROFILE|grep ISERV_BACKEND|sed -e 's/#.ISERV_BACKEND=//g')
   PROFILE=$(basename $PROFILE)
