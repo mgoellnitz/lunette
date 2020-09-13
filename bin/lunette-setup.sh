@@ -15,8 +15,14 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
-echo -n "Subject: "
-read SCHOOL_SUBJECT
-grep -v SCHOOL_SUBJECT= ~/.bashrc > brc 
+echo -n "iServ Host: "
+read ISERV_BACKEND
+grep -v ISERV_BACKEND= ~/.bashrc > brc 
 mv brc ~/.bashrc
-echo "export SCHOOL_SUBJECT=$SCHOOL_SUBJECT" >> ~/.bashrc
+echo "export ISERV_BACKEND=https://$ISERV_BACKEND/iserv" >> ~/.bashrc
+echo -n "Your Token: "
+read SCHOOL_TOKEN
+grep -v SCHOOL_TOKEN= ~/.bashrc > brc 
+mv brc ~/.bashrc
+echo "export SCHOOL_TOKEN=$SCHOOL_TOKEN" >> ~/.bashrc
+source ~/.bashrc

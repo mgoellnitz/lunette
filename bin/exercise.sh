@@ -55,10 +55,19 @@ if [ -z "$EXERCISE" ] ; then
   usage
 fi
 
+BACKEND=$ISERV_BACKEND
 PROFILE=$(ls ~/.iserv.*${PATTERN}*|head -1)
 if [ -z "$PROFILE" ] ; then
   echo "Error: No active session found. Did you issue 'create session'?"
   echo ""
+  if [ -z "$PATTERN" ] ; then
+    if [ -z "$BACKEND" ] ; then
+      exit 1
+    else
+      echo -n "Enter $BACKEND user name: "
+      read PATTERN
+    fi
+  fi
   $MYDIR/createsession.sh $PATTERN
   PROFILE=$(ls ~/.iserv.*${PATTERN}*|head -1)
   BACKEND=$(cat $PROFILE|grep ISERV_BACKEND|sed -e 's/#.ISERV_BACKEND=//g')

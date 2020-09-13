@@ -51,6 +51,7 @@ ENDDATE="$(date -d '+6 days 20' "+%d.%m.%Y %H:%M")"
 TYPE="confirmation"
 TEACHER=$SCHOOL_TOKEN
 TAGNAME=$SCHOOL_SUBJECT
+BACKEND=$ISERV_BACKEND
 TITLEPREFIX=""
 FORM=""
 PARTICIPANTUSER=""
@@ -112,6 +113,7 @@ while [ "$PSTART" = "-" ] ; do
   PSTART=`echo $1|sed -e 's/^\(.\).*/\1/g'`
 done
 FILENAME=${1}
+FILENAME=$(echo -E $FILENAME|sed -e 's/C:/\/mnt\/c\//g')
 
 if [ ! -f "$FILENAME" ] ; then
   echo "File \"$FILENAME\" not found."
@@ -128,6 +130,14 @@ PROFILE=$(ls ~/.iserv.*${PATTERN}*|head -1)
 if [ -z "$PROFILE" ] ; then
   echo "Error: No active session found. Did you issue 'create session'?"
   echo ""
+  if [ -z "$PATTERN" ] ; then
+    if [ -z "$BACKEND" ] ; then
+      exit 1
+    else
+      echo -n "Enter $BACKEND user name: "
+      read PATTERN
+    fi
+  fi
   $MYDIR/createsession.sh $PATTERN
   PROFILE=$(ls ~/.iserv.*${PATTERN}*|head -1)
   BACKEND=$(cat $PROFILE|grep ISERV_BACKEND|sed -e 's/#.ISERV_BACKEND=//g')
@@ -147,7 +157,11 @@ else
   fi
 fi
 echo "Creating Exercise for $USERNAME@$BACKEND"
-SESSIONCHECK=$(grep 'Redirecting.to.*.login' $TMPFILE)
+if [ $(cat $TMPFILE|wc -l) -eq 0 ] ; then
+  SESSIONCHECK="There is no result"
+else
+  SESSIONCHECK=$(grep 'Redirecting.to.*.login' $TMPFILE)
+fi
 if [ ! -z "$SESSIONCHECK" ] ; then
   echo "Not logged in."
   exit 1
@@ -216,7 +230,7 @@ if [ ! -z "$UNTIS" ] ; then
   if [ -z "$UNTIS" ] ; then
     UNTIS="./next-lesson.sh"
     if [ ! -x "$UNTIS" ] ; then
-      UNTIS="../../proposito-unitis/bin/next-lesson.sh"
+      UNTIS="$MYDIR/../../proposito-unitis/bin/next-lesson.sh"
       if [ ! -x "$UNTIS" ] ; then
         echo "Untis command line tools not found."
         exit 1
@@ -229,6 +243,12 @@ if [ ! -z "$UNTIS" ] ; then
   fi
   echo $UNTIS -z -f "$FORM" -s "$COURSE"
   UNTIS_TIME=$($UNTIS -z -f "$FORM" -s "$COURSE")
+  if [ $(echo "$UNTIS_TIME"|grep "Please fetch"|wc -l) -gt 0 ] ; then
+    if [ ! -z "$UNTIS_HOST" ] && [ ! -z "$UNTIS_SCHOOL" ] ; then
+      $(dirname $UNTIS)/fetchtimetable.sh -i
+      UNTIS_TIME=$($UNTIS -z -f "$FORM" -s "$COURSE")
+    fi
+  fi
   if [ $(echo "$UNTIS_TIME"|grep "Please fetch"|wc -l) -gt 0 ] ; then
     echo "WARNING: Current Untis timetable data is missing."
   else

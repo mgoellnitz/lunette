@@ -13,8 +13,9 @@ objectives with a generic collection of command line scripts.
 * collecting submissions for tasks for offline use in teacher's view
 * easier handling of new exercises with automated parameter selection
 
-Sorry to tell you that due to personal preferences in our household all these
-scripts are and will be only linux-tested.
+The scripts are mainly used with GNU/Linux  but are also partially tested with
+a Windows Subsystem for Linux and a Debian install from the store on top of
+that.
 
 ## Feedback
 
@@ -32,7 +33,24 @@ lunette: telescope, Fr.
 The real origin of the name is the acronym of an acronym for a given instance
 of [iServ][iserv] with just `te` appended to sound a bit french.
 
-## Usage
+## Windows Integration
+
+The use of this tool with windows is possible but limited to systems where the
+Windows Subsystem for Linux (WSL) is installed and a linux distribution 
+`Debian` or `Ubuntu` is installed from the Store.
+
+## Installation
+
+Besides the usual manual mode if extracting the files from the distribution 
+archive to a place of your chosing and add this to you PATH, a short version 
+for inexperiences users is presented especially on Windows (WSL) systems.
+
+After downloading and extracting the archive call `./install.sh` in the top
+level directory or double-click `install.bat`.
+
+(This installation method is not meant to be the most elegant way.)
+
+## Command Line Usage in Student's View
 
 For each and every tasks [iServ][iserv] needs a valid session. To avoid 
 repeated login, we maintain sessions through cookie-collection files. 
@@ -128,6 +146,53 @@ containing the files mentioned in the exercise details.
 
 ```
 for e in $(bin/exercises.sh -p|cut -d ' ' -f 1) ; do bin/exercise.sh -d $e > $e.txt ; done
+```
+
+## Command Line Usage in Teachers's View
+
+For each and every tasks [iServ][iserv] needs a valid session. To avoid 
+repeated login, we maintain sessions through cookie-collection files. 
+Additionally this tool is multi session capable, holding more than one 
+session at a time. Timeout of sessions usually is observed to be 24h.
+
+Of couse all commands available to students are available in this view, too.
+
+Additionally it is possible to pose new exercises with a consistent naming
+scheme and reduce parameter input to avoid mistakes. Additionally parameters
+may be taken from a limited untis timetable integration.
+
+## Context Switches
+
+Especially in Teacher View many parameters will be needed and be mostly 
+constant over a given period in time. To avoid this, some parameters may be
+given as environment variables. 
+
+Those variables may be modified in your shell defaults with some convenience
+scripts.
+
+* Switch Topic
+
+Topics are used to prepare prefixes in exercise names and to select tags for
+new exercises.
+
+```
+./switch_topic.sh
+Topic:Biology
+```
+
+Be aware that the given topic *must* be available in the tag setup your local
+administrator prepared for you.
+
+* Setup basic Parameters
+
+It is expected that the backend in use and your teacher shorthand code dont't
+change at all during the use of this tool. So use the setup command once to
+make the corresponding values your shell defaults.
+
+```
+./lunette-setup.sh
+iServ Backend: sts-lohbruegge.de
+School Token: Li
 ```
 
 ## Related Repositories on Github

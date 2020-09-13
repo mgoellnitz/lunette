@@ -46,6 +46,9 @@ distributions {
         from 'windows'
       }
       into ('') {
+        from 'install'
+      }
+      into ('') {
         from 'README.md'
       }
     }

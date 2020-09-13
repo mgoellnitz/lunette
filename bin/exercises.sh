@@ -52,14 +52,20 @@ while [ "$PSTART" = "-" ] ; do
 done
 FILTER=${1:-.*}
 
+BACKEND=$ISERV_BACKEND
 PROFILE=$(ls ~/.iserv.*${PATTERN}*|head -1)
 if [ -z "$PROFILE" ] ; then
   echo "Error: No active session found. Did you issue 'create session'?"
   echo ""
-  $MYDIR/createsession.sh $PATTERN
   if [ -z "$PATTERN" ] ; then
-    exit 1
+    if [ -z "$BACKEND" ] ; then
+      exit 1
+    else
+      echo -n "Enter $BACKEND user name: "
+      read PATTERN
+    fi
   fi
+  $MYDIR/createsession.sh $PATTERN
   PROFILE=$(ls ~/.iserv.*${PATTERN}*|head -1)
   BACKEND=$(cat $PROFILE|grep ISERV_BACKEND|sed -e 's/#.ISERV_BACKEND=//g')
   PROFILE=$(basename $PROFILE)

@@ -15,8 +15,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
-echo -n "Subject: "
-read SCHOOL_SUBJECT
-grep -v SCHOOL_SUBJECT= ~/.bashrc > brc 
-mv brc ~/.bashrc
-echo "export SCHOOL_SUBJECT=$SCHOOL_SUBJECT" >> ~/.bashrc
+CHECK=$((which curl;which unzip)|wc -l)
+if [ "$CHECK" -lt 2 ] ; then
+  sudo apt update
+  sudo apt install -yq curl unzip
+fi
+sudo cp bin/*.sh /usr/local/bin
+lunette-setup.sh
