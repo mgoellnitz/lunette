@@ -39,9 +39,15 @@ sourceSets {
 distributions {
   main {
     contents {
-      from 'README.md'
-      from 'bin'
-      // into 'usr/local/bin'
+      into ('bin') {
+        from 'bin'
+      }
+      into ('windows') {
+        from 'windows'
+      }
+      into ('') {
+        from 'README.md'
+      }
     }
   }
 }
