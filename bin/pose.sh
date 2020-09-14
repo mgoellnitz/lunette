@@ -164,12 +164,14 @@ else
 fi
 if [ ! -z "$SESSIONCHECK" ] ; then
   echo "Not logged in."
+  rm -f $TMPFILE
   exit 1
 fi
 
 AUTHCHECK=$(grep 'missing.*required.*authorization' $TMPFILE|wc -l)
 if [ "$AUTHCHECK" -gt 0 ] ; then
   echo "You may not pose exercises on this system as user $USERNAME@$BACKEND."
+  rm -f $TMPFILE
   exit 1
 fi
 TAGS=""
@@ -197,6 +199,7 @@ if [ ! -z "$PARTICIPANTGROUP" ] ; then
       echo "Group specification does not refer to a single group. Please be more specific:"
       echo ""
       grep "$PARTICIPANTGROUP.*\.$(date +%Y)$" $GROUPLIST
+      rm -f $TMPFILE $GROUPLIST
       exit 1
     else
       TEACHERLOWER=$(echo $TEACHER|tr [:upper:] [:lower:])
@@ -205,6 +208,7 @@ if [ ! -z "$PARTICIPANTGROUP" ] ; then
         echo "Group specification does not refer to a single group. Please be more specific:"
         echo ""
         grep "$PARTICIPANTGROUP.*\.$(date +%Y)$" $GROUPLIST
+        rm -f $TMPFILE $GROUPLIST
         exit 1
       fi
     fi
@@ -220,6 +224,7 @@ if [ ! -z "$PARTICIPANTUSER" ] ; then
     echo "Person specification does not refer to a single registered user. Please be more specific:"
     echo ""
     grep "$PARTICIPANTUSER" $USERLIST
+    rm -f $TMPFILE $GROUPLIST $USERLIST
     exit 1
   fi
   PARTICIPANTUSER=$(grep "$PARTICIPANTUSER" $USERLIST)
@@ -233,7 +238,9 @@ if [ ! -z "$UNTIS" ] ; then
       UNTIS="$MYDIR/../../proposito-unitis/bin/next-lesson.sh"
       if [ ! -x "$UNTIS" ] ; then
         echo "Untis command line tools not found."
+        rm -f $TMPFILE
         exit 1
+        rm -f $TMPFILE $GROUPLIST $USERLIST
       fi
     fi
   fi
@@ -305,4 +312,4 @@ if [ ! -z "$POSE" ] ; then
 
   # echo "System result URL: $DATA"
 fi
-rm $TMPFILE
+rm -f $TMPFILE $GROUPLIST $USERLIST
