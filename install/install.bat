@@ -1,2 +1,2 @@
 @echo off
-bash -c "source install.sh"
+bash -i -c "source install.sh"

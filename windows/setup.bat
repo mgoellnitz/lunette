@@ -1,2 +1,2 @@
 @echo off
-bash -c "lunette-setup.sh"
+bash -i -c "lunette-setup.sh"

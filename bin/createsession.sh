@@ -38,8 +38,22 @@ if [ -z "$BACKEND" ] ; then
    exit
 fi
 
-echo -n "Password for $USERNAME@$BACKEND: "
-read -s PASSWORD
+WINDOWS=$(uname -a|grep Microsoft)
+if [ ! -z "$WINDOWS" ] ; then
+  ZENITY=zenity.exe
+else
+  ZENITY=zenity
+fi
+if [ -z $(which zenity|wc -l) ] ; then
+  ZENITY=
+fi
+
+if [ -z "$ZENITY" ] ; then
+  echo -n "Password for $USERNAME@$BACKEND: "
+  read -s PASSWORD
+else
+  PASSWORD=$($ZENITY --entry --text="Kennwort für $USERNAME" --entry-text="$PASSWORD" --hide-text --title="iServ - $BACKEND"|sed -e 's/\r//g')
+fi
 
 echo ""
 echo Creating session for $USERNAME@$BACKEND

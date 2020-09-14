@@ -1,5 +1,5 @@
 @echo off
 set FILENAME=%1
 set UNIXNAME=%FILENAME:\=/%
-bash -i -c "pose.sh -w %UNIXNAME%"
+bash -i -c "issue.sh %UNIXNAME%"
 pause

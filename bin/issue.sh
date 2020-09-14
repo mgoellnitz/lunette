@@ -22,14 +22,14 @@ GROUPLIST="/tmp/lunette.groups"
 USERLIST="/tmp/lunette.users"
 
 function usage {
-   echo "Usage: $MYNAME [-a abb] [-s subject] [-c] [-t] [-f] -u username filename.txt"
+   echo "Usage: $MYNAME [-c] [-t] [-f] [-b begin] [-e end] [-g group] [-p user] [-m form] [-s subject] [-a abb] [-u username] filename.txt"
    echo ""
    echo "  -c               set exercise type to confirmation (default)"
    echo "  -t               set exercise type to writing some text online"
    echo "  -f               set exercise type uploading result files"
-   echo "  -w               ask webuntis about start of next lesson to fill times"
-   echo "  -b begin         start time in the format dd.mm.yyy HH:MM local time (default today 8:00)"
-   echo "  -e end           end time in the format dd.mm.yyy HH:MM local time (default yesterday in a week 23:00)"
+   echo "  -w               ask webuntis about start of next lesson to fill in end time"
+   echo "  -b begin         start time in the format dd.mm.yyy HH:MM local time (default today 9:00)"
+   echo "  -e end           end time in the format dd.mm.yyy HH:MM local time (default yesterday in a week 20:00)"
    echo "  -g group         exercise participants as a group identifier"
    echo "  -p person        exercise participants as a single user identifier"
    echo "  -m form          when dealing with single person exercises, add their form they are in here explicitly"
@@ -57,6 +57,16 @@ FORM=""
 PARTICIPANTUSER=""
 PARTICIPANTGROUP=""
 UNTIS=""
+
+WINDOWS=$(uname -a|grep Microsoft)
+if [ ! -z "$WINDOWS" ] ; then
+  ZENITY=zenity.exe
+else
+  ZENITY=zenity
+fi
+if [ -z $(which zenity|wc -l) ] ; then
+  ZENITY=
+fi
 
 PSTART=`echo $1|sed -e 's/^\(.\).*/\1/g'`
 DOWNLOAD=false
@@ -113,8 +123,41 @@ while [ "$PSTART" = "-" ] ; do
   PSTART=`echo $1|sed -e 's/^\(.\).*/\1/g'`
 done
 FILENAME=${1}
-FILENAME=$(echo -E $FILENAME|sed -e 's/C:/\/mnt\/c\//g')
+FILENAME=$(echo -E $FILENAME|sed -e 's/C:/\/mnt\/c/g')
+if [ "$FILENAME" = "=/" ] ; then
+  FILENAME=
+fi
 
+if [ -z "$FILENAME" ] ; then
+  if [ -z "$ZENITY" ] ; then
+    usage
+  else
+    FORM=$($ZENITY --entry --text="Klasse (für Oberstufe die Stufe)" --entry-text="$SCHOOL_FORM" --title="Aufgabendatei"|sed -e 's/\r//g')
+    TITLEPREFIX="$FORM "
+    PARTICIPANTGROUP=$($ZENITY --entry --text="Gruppe (Namensausschnitt)" --entry-text="$FORM" --title="Teilnehmer"|sed -e 's/\r//g')
+    SUBJECT=$($ZENITY --entry --text="Bezeichnung der Fachmarkierung ('Tag')" --entry-text="$SCHOOL_SUBJECT" --title="Schulfach"|sed -e 's/\r//g')
+    STARTDATE=$($ZENITY --calendar --title="Startdatum" --date-format="%d.%m.%Y 9:00"|sed -e 's/\r//g')
+    UNTIS_NEXT_LESSON=$(which next-lesson.sh)
+    if [ -z "$UNTIS_NEXT_LESSON" ] ; then
+      UNTIS_NEXT_LESSON="./next-lesson.sh"
+      if [ ! -x "$UNTIS_NEXT_LESSON" ] ; then
+        UNTIS_NEXT_LESSON="$MYDIR/../../proposito-unitis/bin/next-lesson.sh"
+      fi
+    fi
+    if [ -x "$UNTIS_NEXT_LESSON" ] ; then
+      if $ZENITY --question --title="Untis" --text="Abgabezeit aus dem Untis Stundenplan aus der Startzeit der nächsten Stunde ermitteln?" --no-wrap ; then
+        UNTIS="untis"
+      fi
+    fi
+    if [ -z "$UNTIS" ] ; then
+      ENDDATE=$($ZENITY --calendar --title="Enddatum" --year="$(date -d '+6 days 20' +%Y)" --month="$(date -d '+6 days 20' +%m|sed -e s/^0//g)" --day="$(date -d '+6 days 20' +%d)" --date-format="%d.%m.%Y 20:00"|sed -e 's/\r//g')
+    fi
+    FILENAME=$($ZENITY --file-selection --file-filter="Text|*.txt" --title="Aufgabendatei"|sed -e 's/\r//g'|sed -e 's/C:/\/mnt\/c\//g'|sed -e 's/\\/\//g')
+    # GROUPANDUSER=$($ZENITY --forms --title="Aufgabendatei" --add-entry="Teilnehmergruppe" --add-entry="Einzelteilnehmer")
+    # PARTICIPANTGROUP
+    # PARTICIPANTUSER
+  fi
+fi
 if [ ! -f "$FILENAME" ] ; then
   echo "File \"$FILENAME\" not found."
   echo ""
@@ -170,7 +213,7 @@ fi
 
 AUTHCHECK=$(grep 'missing.*required.*authorization' $TMPFILE|wc -l)
 if [ "$AUTHCHECK" -gt 0 ] ; then
-  echo "You may not pose exercises on this system as user $USERNAME@$BACKEND."
+  echo "You may not issue exercises on this system as user $USERNAME@$BACKEND."
   rm -f $TMPFILE
   exit 1
 fi
@@ -183,8 +226,9 @@ for tag in $(grep option.va /tmp/lunette.html |sed -e 's/.*"\(.*\)".*/\1/g'|grep
   fi
 done
 if [ -z "$TAGS" ] ; then
-  echo "No school subject given."
+  echo "No (valid) school subject given ($TAGNAME)."
   echo ""
+  rm -f $TMPFILE
   usage
 fi
 
@@ -238,9 +282,8 @@ if [ ! -z "$UNTIS" ] ; then
       UNTIS="$MYDIR/../../proposito-unitis/bin/next-lesson.sh"
       if [ ! -x "$UNTIS" ] ; then
         echo "Untis command line tools not found."
-        rm -f $TMPFILE
-        exit 1
         rm -f $TMPFILE $GROUPLIST $USERLIST
+        exit 1
       fi
     fi
   fi
@@ -278,17 +321,17 @@ echo "$TEXT"
 echo ""
 echo "Participating group: $PARTICIPANTGROUP - Single participant: $PARTICIPANTUSER"
 
-if [ -z $POSE ] ; then
+if [ -z $ISSUE ] ; then
   echo ""
-  echo -n "Pose exercise this way? (j/n)"
-  read -s POSE
-  if [ "$POSE" != "j" ] ; then
-    POSE=
+  echo -n "Issue exercise this way? (j/n)"
+  read -s ISSUE
+  if [ "$ISSUE" != "j" ] ; then
+    ISSUE=
   fi
   echo ""
 fi
 
-if [ ! -z "$POSE" ] ; then
+if [ ! -z "$ISSUE" ] ; then
   EXERCISE="exercise[title]=$TITLE"
   EXERCISE="${EXERCISE}&exercise[startDate]=$STARTDATE"
   EXERCISE="${EXERCISE}&exercise[endDate]=$ENDDATE"

@@ -50,6 +50,14 @@ level directory or double-click `install.bat`.
 
 (This installation method is not meant to be the most elegant way.)
 
+## Dialog based Usage
+
+The windows subfolder of the installation contains clickable starters to
+
+* setup basic values (also done during installation)
+* switch the context of the subject you are currently working on
+* issue a new exercise based on a prepared text file.
+
 ## Command Line Usage in Student's View
 
 For each and every tasks [iServ][iserv] needs a valid session. To avoid 
@@ -157,9 +165,27 @@ session at a time. Timeout of sessions usually is observed to be 24h.
 
 Of couse all commands available to students are available in this view, too.
 
-Additionally it is possible to pose new exercises with a consistent naming
+Additionally it is possible to issue new exercises with a consistent naming
 scheme and reduce parameter input to avoid mistakes. Additionally parameters
 may be taken from a limited untis timetable integration.
+
+```
+Usage: $MYNAME [-c] [-t] [-f] [-b begin] [-e end] [-g group] [-p user] [-m form] [-s subject] [-a abb] [-u username] filename.txt
+
+  -c               set exercise type to confirmation (default)
+  -t               set exercise type to writing some text online
+  -f               set exercise type uploading result files
+  -w               ask webuntis about start of next lesson to fill in end time
+  -b begin         start time in the format dd.mm.yyy HH:MM local time (default today 9:00)
+  -e end           end time in the format dd.mm.yyy HH:MM local time (default yesterday in a week 20:00)
+  -g group         exercise participants as a group identifier
+  -p person        exercise participants as a single user identifier
+  -m form          when dealing with single person exercises, add their form they are in here explicitly
+  -s subject       subject given as a valid tag name (default $SCHOOL_SUBJECT)
+  -a abb           teacher identification code as abbrevation (default $SCHOOL_TOKEN)
+  -u pattern       login of the user to read given exercise for
+     filename.txt  filename of the basic description file for a new exercise
+```
 
 ## Context Switches
 

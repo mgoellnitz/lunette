@@ -45,6 +45,9 @@ distributions {
       into ('windows') {
         from 'windows'
       }
+      into ('linux') {
+        from 'linux'
+      }
       into ('') {
         from 'install'
       }
