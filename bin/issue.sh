@@ -178,7 +178,7 @@ if [ ! -z "$SESSIONCHECK" ] ; then
 fi
 
 grep option.va $TMPFILE |sed -e 's/.*"\(.*\)".*/\1/g'|grep $(date +%Y) > $GROUPLIST
-if [ -z "$FILENAME" ] ; then
+if [ -z "$FILENAME" ] && [ -z "$FORM"] ; then
   if [ -z "$ZENITY" ] ; then
     usage
   else
@@ -219,7 +219,9 @@ if [ -z "$FILENAME" ] ; then
     if [ -z "$UNTIS" ] ; then
       ENDDATE=$($ZENITY --calendar --title="Enddatum" --year="$(date -d '+6 days 20' +%Y)" --month="$(date -d '+6 days 20' +%m|sed -e s/^0//g)" --day="$(date -d '+6 days 20' +%d)" --date-format="%d.%m.%Y 20:00"|sed -e 's/\r//g')
     fi
-    FILENAME=$($ZENITY --file-selection --file-filter="Text|*.txt" --title="Aufgabendatei"|sed -e 's/\r//g'|sed -e 's/C:/\/mnt\/c\//g'|sed -e 's/\\/\//g')
+    if [ -z "$FILENAME" ] ; then
+      FILENAME=$($ZENITY --file-selection --file-filter="Text|*.txt" --title="Aufgabendatei"|sed -e 's/\r//g'|sed -e 's/C:/\/mnt\/c\//g'|sed -e 's/\\/\//g')
+    fi
     XTYPE=$(echo -e "Abhaken\nText\nDatei(en)"|$ZENITY --list --title "Abgabeformat" --text "Was sollen als Ergebnis vorgelegt werden?" --column "Typ"|sed -e 's/\r//g')
     if [ "$XTYPE" = "Text" ] ; then
       TYPE="text"
