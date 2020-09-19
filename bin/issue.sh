@@ -178,7 +178,7 @@ if [ ! -z "$SESSIONCHECK" ] ; then
 fi
 
 grep option.va $TMPFILE |sed -e 's/.*"\(.*\)".*/\1/g'|grep $(date +%Y) > $GROUPLIST
-if [ -z "$FILENAME" ] && [ -z "$FORM"] ; then
+if [ -z "$PARTICIPANTUSER"] && [ -z "$PARTICIPANTGROUP"] ; then
   if [ -z "$ZENITY" ] ; then
     usage
   else
