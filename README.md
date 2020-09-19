@@ -189,7 +189,7 @@ Usage: $MYNAME [-c] [-t] [-f] [-b begin] [-e end] [-g group] [-p user] [-m form]
   -g group         exercise participants as a group identifier
   -p person        exercise participants as a single user identifier
   -m form          when dealing with single person exercises, add their form they are in here explicitly
-  -s subject       subject given as a valid tag name (default $SCHOOL_SUBJECT)
+  -s subject       subject given as a valid tag name (default $ISERV_TAG)
   -a abb           teacher identification code as abbrevation (default $SCHOOL_TOKEN)
   -u pattern       login of the user to read given exercise for
      filename.txt  filename of the basic description file for a new exercise

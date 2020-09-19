@@ -33,7 +33,7 @@ function usage {
    echo "  -g group         exercise participants as a group identifier"
    echo "  -p person        exercise participants as a single user identifier"
    echo "  -m form          when dealing with single person exercises, add their form they are in here explicitly"
-   echo "  -s subject       subject given as a valid tag name (default $SCHOOL_SUBJECT)"
+   echo "  -s subject       subject given as a valid tag name (default $ISERV_TAG)"
    echo "  -a abb           teacher identification code as abbrevation (default $SCHOOL_TOKEN)"
    echo "  -u pattern       login of the user to read given exercise for"
    echo "     filename.txt  filename of the basic description file for a new exercise"
@@ -51,7 +51,7 @@ fi
 # TYPE: confirmation|files|text
 TYPE="confirmation"
 TEACHER=$SCHOOL_TOKEN
-TAGNAME=$SCHOOL_SUBJECT
+TAGNAME=$ISERV_TAG
 BACKEND=$ISERV_BACKEND
 TITLEPREFIX=""
 FORM=""
@@ -203,7 +203,7 @@ if [ -z "$PARTICIPANTUSER" ] && [ -z "$PARTICIPANTGROUP" ] ; then
       PARTICIPANTGROUP=$(grep "$FILTER" $GROUPLIST)
     fi
     echo Group: $PARTICIPANTGROUP
-    TAGNAME=$($ZENITY --entry --text="Bezeichnung der Fachmarkierung ('Tag')" --entry-text="$SCHOOL_SUBJECT" --title="Schulfach"|sed -e 's/\r//g')
+    TAGNAME=$($ZENITY --entry --text="Bezeichnung der Fachmarkierung ('Tag')" --entry-text="$ISERV_TAG" --title="Schulfach"|sed -e 's/\r//g')
     STARTDATE=$($ZENITY --calendar --title="Startdatum" --date-format="%d.%m.%Y 9:00"|sed -e 's/\r//g')
     UNTIS_NEXT_LESSON=$(which next-lesson.sh)
     if [ -z "$UNTIS_NEXT_LESSON" ] ; then
@@ -336,7 +336,11 @@ if [ ! -z "$UNTIS" ] ; then
     if [ "$UNTIS_TIME" = '?' ] ; then
       echo "WARNING: Could not find upcoming lesson for $COURSE in form $FORM in your untis timetable."
     else
-      ENDDATE=$(date -d "TZ=\"UTC\" $UNTIS_TIME" "+%d.%m.%Y %H:%M")
+      if [ -z "$(uname -v|grep Darwin)" ] ; then
+        ENDDATE=$(date -d "TZ=\"UTC\" $UNTIS_TIME" "+%d.%m.%Y %H:%M")
+      else
+        ENDDATE=$(date -jf "%Y%m%d %H%M" "$(next-lesson.sh -f 11 -s Bio)" "+%d.%m.%Y %H:%M")
+      fi
     fi
   fi
 fi

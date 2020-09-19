@@ -27,10 +27,10 @@ fi
 
 if [ -z "$ZENITY" ] ; then
   echo -n "Subject: "
-  read SCHOOL_SUBJECT
+  read ISERV_TAG
 else
-  PASSWORD=$($ZENITY --entry --text="Schulfach (wie das 'Tag' in iServ)" --entry-text="$SCHOOL_SUBJECT" --hide-text --title="iServ"|sed -e 's/\r//g')
+  PASSWORD=$($ZENITY --entry --text="Schulfach (wie das 'Tag' in iServ)" --entry-text="$ISERV_TAG" --hide-text --title="iServ"|sed -e 's/\r//g')
 fi
-grep -v SCHOOL_SUBJECT= ~/.bashrc > brc 
+grep -v ISERV_TAG= ~/.bashrc > brc 
 mv brc ~/.bashrc
-echo "export SCHOOL_SUBJECT=$SCHOOL_SUBJECT" >> ~/.bashrc
+echo "export ISERV_TAG=$ISERV_TAG" >> ~/.bashrc
