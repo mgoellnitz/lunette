@@ -192,7 +192,7 @@ if [ -z "$PARTICIPANTUSER"] && [ -z "$PARTICIPANTGROUP"] ; then
         else
           FILTER="$FORM\.$(date +%Y)$"
         fi
-        PARTICIPANTGROUP=$(grep "$FILTER" $GROUPLIST|$ZENITY --list --title "Teilnehmer" --text "Bitte wählen Sie genau eine Gruppe aus." --column "Gruppe"|sed -e 's/\r//g')
+        PARTICIPANTGROUP=$($ZENITY --list --title "Teilnehmer" --text "Bitte wählen Sie genau eine Gruppe aus." --column "Gruppe" $(grep "$FILTER" $GROUPLIST)|sed -e 's/\r//g')
         # PARTICIPANTGROUP=$($ZENITY --entry --text="Gruppe (Namensausschnitt)" --entry-text="$FORM" --title="Teilnehmer"|sed -e 's/\r//g')
         # echo "$TEACHERLOWER: $PARTICIPANTGROUP|grep \\.$TEACHERLOWER\.."
       else
@@ -222,7 +222,7 @@ if [ -z "$PARTICIPANTUSER"] && [ -z "$PARTICIPANTGROUP"] ; then
     if [ -z "$FILENAME" ] ; then
       FILENAME=$($ZENITY --file-selection --file-filter="Text|*.txt" --title="Aufgabendatei"|sed -e 's/\r//g'|sed -e 's/C:/\/mnt\/c\//g'|sed -e 's/\\/\//g')
     fi
-    XTYPE=$(echo -e "Abhaken\nText\nDatei(en)"|$ZENITY --list --title "Abgabeformat" --text "Was sollen als Ergebnis vorgelegt werden?" --column "Typ"|sed -e 's/\r//g')
+    XTYPE=$($ZENITY --list --title "Abgabeformat" --text "Was sollen als Ergebnis vorgelegt werden?" --column "Typ" Abhaken Text 'Datei(en)'|sed -e 's/\r//g')
     if [ "$XTYPE" = "Text" ] ; then
       TYPE="text"
     fi
