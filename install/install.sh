@@ -17,8 +17,13 @@
 #
 CHECK=$((which curl;which unzip;which zenity)|wc -l)
 if [ "$CHECK" -lt 3 ] ; then
-  sudo apt update
-  sudo apt install -yq curl unzip zenity
+  CHECK=$((which apt)|wc -l)
+  if [ "$CHECK" -eq 1 ] ; then
+    sudo apt update
+    sudo apt install -yq curl unzip zenity
+  else
+    echo 'Please ensure that unzip and curl are available from the $PATH'
+  fi
 fi
 sudo cp bin/*.sh /usr/local/bin
 sudo cp linux/lunette.jpg /usr/local/lib
@@ -40,7 +45,7 @@ if [ ! -z "$WINDOWS" ] ; then
 else
   ZENITY=zenity
 fi
-if [ -z $(which zenity|wc -l) ] ; then
+if [ -z $(which zenity) ] ; then
   ZENITY=
 fi
 lunette-setup.sh
