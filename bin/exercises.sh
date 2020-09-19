@@ -79,7 +79,7 @@ else
   SESSIONCHECK=$(grep 'Redirecting.to.*.login' $TMPFILE)
   if [ ! -z "$SESSIONCHECK" ] ; then
     echo "Error: Session expired."
-    $MYDIR/createsession.sh $USERNAME
+    $MYDIR/createsession.sh $USERNAME $BACKEND
     curl -b ~/.iserv.$USERNAME $BACKEND/exercise 2> /dev/null >$TMPFILE
   fi
 fi
