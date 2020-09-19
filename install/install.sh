@@ -21,7 +21,9 @@ if [ "$CHECK" -lt 3 ] ; then
     sudo apt update
     sudo apt install -yq curl unzip zenity
   else
-    echo 'Please ensure that unzip and curl are available from the $PATH'
+    if [ "$((which curl;which unzip)|wc -l)" -lt 2 ] ; then
+      echo 'Please ensure that unzip and curl are available from the $PATH'
+    fi
   fi
 fi
 sudo cp bin/*.sh /usr/local/bin

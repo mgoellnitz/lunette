@@ -29,7 +29,7 @@ if [ -z "$ZENITY" ] ; then
   echo -n "iServ Host: "
   read ISERV_BACKEND
   echo -n "iServ Username: "
-  read ISERV_USER
+  read USERNAME
   echo -n "Your Token: "
   read SCHOOL_TOKEN
 else  
