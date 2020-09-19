@@ -135,7 +135,7 @@ if [ -z "$FILENAME" ] ; then
     FORM=$($ZENITY --entry --text="Klasse (für Oberstufe die Stufe)" --entry-text="$SCHOOL_FORM" --title="Aufgabendatei"|sed -e 's/\r//g')
     TITLEPREFIX="$FORM "
     PARTICIPANTGROUP=$($ZENITY --entry --text="Gruppe (Namensausschnitt)" --entry-text="$FORM" --title="Teilnehmer"|sed -e 's/\r//g')
-    SUBJECT=$($ZENITY --entry --text="Bezeichnung der Fachmarkierung ('Tag')" --entry-text="$SCHOOL_SUBJECT" --title="Schulfach"|sed -e 's/\r//g')
+    TAGNAME=$($ZENITY --entry --text="Bezeichnung der Fachmarkierung ('Tag')" --entry-text="$SCHOOL_SUBJECT" --title="Schulfach"|sed -e 's/\r//g')
     STARTDATE=$($ZENITY --calendar --title="Startdatum" --date-format="%d.%m.%Y 9:00"|sed -e 's/\r//g')
     UNTIS_NEXT_LESSON=$(which next-lesson.sh)
     if [ -z "$UNTIS_NEXT_LESSON" ] ; then
@@ -349,8 +349,8 @@ if [ ! -z "$ISSUE" ] ; then
   EXERCISE="${EXERCISE}&exercise[_token]=$TOKEN"
   # echo $EXERCISE
   DATA=$(curl -b ~/.iserv.$USERNAME -H "Content-type: application/x-www-form-urlencoded" -X POST -D - \
-              -d "$EXERCISE" $BACKEND/exercise/manage/exercise/add 2> /dev/null |grep ^Location: /tmp/lunette.analyse |cut -d ' ' -f 2)
-  # echo "$DATA" > /tmp/lunette.analyse
+              -d "$EXERCISE" $BACKEND/exercise/manage/exercise/add 2> /dev/null > /tmp/lunette.analyze|grep ^Location: /tmp/lunette.analyze |cut -d ' ' -f 2)
+  # echo "$DATA" > /tmp/lunette.analyze
   # echo "Done."
 
   # echo "System result URL: $DATA"

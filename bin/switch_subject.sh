@@ -15,8 +15,22 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
-echo -n "Subject: "
-read SCHOOL_SUBJECT
+WINDOWS=$(uname -a|grep Microsoft)
+if [ ! -z "$WINDOWS" ] ; then
+  ZENITY=zenity.exe
+else
+  ZENITY=zenity
+fi
+if [ -z $(which zenity|wc -l) ] ; then
+  ZENITY=
+fi
+
+if [ -z "$ZENITY" ] ; then
+  echo -n "Subject: "
+  read SCHOOL_SUBJECT
+else
+  PASSWORD=$($ZENITY --entry --text="Schulfach (wie das 'Tag' in iServ)" --entry-text="$SCHOOL_SUBJECT" --hide-text --title="iServ"|sed -e 's/\r//g')
+fi
 grep -v SCHOOL_SUBJECT= ~/.bashrc > brc 
 mv brc ~/.bashrc
 echo "export SCHOOL_SUBJECT=$SCHOOL_SUBJECT" >> ~/.bashrc
