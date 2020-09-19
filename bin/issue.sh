@@ -38,14 +38,15 @@ function usage {
    echo "  -u pattern       login of the user to read given exercise for"
    echo "     filename.txt  filename of the basic description file for a new exercise"
    echo ""
-   echo "For the $0 command to work an active session"
-   echo "for the given user must be present."
-   echo ""
    exit
 }
 
-STARTDATE="$(date -d '9' "+%d.%m.%Y %H:%M")"
-ENDDATE="$(date -d '+6 days 20' "+%d.%m.%Y %H:%M")"
+STARTDATE="$(date "+%d.%m.%Y 09:00")"
+if [ -z "$(uname -v|grep Darwin)" ] ; then
+  ENDDATE="$(date -d '+6 days 20' "+%d.%m.%Y %H:%M")"
+else
+  ENDDATE="$(date -j -f "%s" $[ $(date "+%s") + ( 86400 * 6 ) ] "+%d.%m.%Y 20:00")"
+fi
 
 # TYPE: confirmation|files|text
 TYPE="confirmation"
@@ -178,7 +179,7 @@ if [ ! -z "$SESSIONCHECK" ] ; then
 fi
 
 grep option.va $TMPFILE |sed -e 's/.*"\(.*\)".*/\1/g'|grep $(date +%Y) > $GROUPLIST
-if [ -z "$PARTICIPANTUSER"] && [ -z "$PARTICIPANTGROUP"] ; then
+if [ -z "$PARTICIPANTUSER" ] && [ -z "$PARTICIPANTGROUP" ] ; then
   if [ -z "$ZENITY" ] ; then
     usage
   else
@@ -362,6 +363,7 @@ if [ -z $ISSUE ] ; then
 fi
 
 if [ ! -z "$ISSUE" ] ; then
+  echo "Issuing exercise."
   EXERCISE="exercise[title]=$TITLE"
   EXERCISE="${EXERCISE}&exercise[startDate]=$STARTDATE"
   EXERCISE="${EXERCISE}&exercise[endDate]=$ENDDATE"
