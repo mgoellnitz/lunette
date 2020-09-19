@@ -128,46 +128,12 @@ if [ "$FILENAME" = "=/" ] ; then
   FILENAME=
 fi
 
-if [ -z "$FILENAME" ] ; then
-  if [ -z "$ZENITY" ] ; then
-    usage
-  else
-    FORM=$($ZENITY --entry --text="Klasse (für Oberstufe die Stufe)" --entry-text="$SCHOOL_FORM" --title="Aufgabendatei"|sed -e 's/\r//g')
-    TITLEPREFIX="$FORM "
-    PARTICIPANTGROUP=$($ZENITY --entry --text="Gruppe (Namensausschnitt)" --entry-text="$FORM" --title="Teilnehmer"|sed -e 's/\r//g')
-    TAGNAME=$($ZENITY --entry --text="Bezeichnung der Fachmarkierung ('Tag')" --entry-text="$SCHOOL_SUBJECT" --title="Schulfach"|sed -e 's/\r//g')
-    STARTDATE=$($ZENITY --calendar --title="Startdatum" --date-format="%d.%m.%Y 9:00"|sed -e 's/\r//g')
-    UNTIS_NEXT_LESSON=$(which next-lesson.sh)
-    if [ -z "$UNTIS_NEXT_LESSON" ] ; then
-      UNTIS_NEXT_LESSON="./next-lesson.sh"
-      if [ ! -x "$UNTIS_NEXT_LESSON" ] ; then
-        UNTIS_NEXT_LESSON="$MYDIR/../../proposito-unitis/bin/next-lesson.sh"
-      fi
-    fi
-    if [ -x "$UNTIS_NEXT_LESSON" ] ; then
-      if $ZENITY --question --title="Untis" --text="Abgabezeit aus dem Untis Stundenplan aus der Startzeit der nächsten Stunde ermitteln?" --no-wrap ; then
-        UNTIS="untis"
-      fi
-    fi
-    if [ -z "$UNTIS" ] ; then
-      ENDDATE=$($ZENITY --calendar --title="Enddatum" --year="$(date -d '+6 days 20' +%Y)" --month="$(date -d '+6 days 20' +%m|sed -e s/^0//g)" --day="$(date -d '+6 days 20' +%d)" --date-format="%d.%m.%Y 20:00"|sed -e 's/\r//g')
-    fi
-    FILENAME=$($ZENITY --file-selection --file-filter="Text|*.txt" --title="Aufgabendatei"|sed -e 's/\r//g'|sed -e 's/C:/\/mnt\/c\//g'|sed -e 's/\\/\//g')
-    # GROUPANDUSER=$($ZENITY --forms --title="Aufgabendatei" --add-entry="Teilnehmergruppe" --add-entry="Einzelteilnehmer")
-    # PARTICIPANTGROUP
-    # PARTICIPANTUSER
-  fi
-fi
-if [ ! -f "$FILENAME" ] ; then
-  echo "File \"$FILENAME\" not found."
-  echo ""
-  usage
-fi
 if [ -z "$TEACHER" ] ; then
   echo "No teacher token issued."
   echo ""
   usage
 fi
+TEACHERLOWER=$(echo $TEACHER|tr [:upper:] [:lower:])
 
 PROFILE=$(ls ~/.iserv.*${PATTERN}*|head -1)
 if [ -z "$PROFILE" ] ; then
@@ -211,6 +177,67 @@ if [ ! -z "$SESSIONCHECK" ] ; then
   exit 1
 fi
 
+grep option.va $TMPFILE |sed -e 's/.*"\(.*\)".*/\1/g'|grep $(date +%Y) > $GROUPLIST
+if [ -z "$FILENAME" ] ; then
+  if [ -z "$ZENITY" ] ; then
+    usage
+  else
+    FORM=$($ZENITY --entry --text="Klasse (für Oberstufe die Stufe)" --entry-text="$SCHOOL_FORM" --title="Aufgabendatei"|sed -e 's/\r//g')
+    TITLEPREFIX="$FORM "
+    FILTER="$FORM.*\.$(date +%Y)$"
+    if [ $(grep "$FILTER" $GROUPLIST|wc -l) -ne 1 ] ; then
+      if [ $(grep "$FILTER" $GROUPLIST|grep "\.$TEACHERLOWER\.$(date +%Y)$"|wc -l) -ne 1 ] ; then
+        if [ $(grep "$FILTER" $GROUPLIST|grep "\.$TEACHERLOWER\.$(date +%Y)$"|wc -l) -gt 1 ] ; then
+          FILTER="$FORM.*$TEACHERLOWER\.$(date +%Y)$"
+        else
+          FILTER="$FORM\.$(date +%Y)$"
+        fi
+        PARTICIPANTGROUP=$(grep "$FILTER" $GROUPLIST|$ZENITY --list --title "Teilnehmer" --text "Bitte wählen Sie genau eine Gruppe aus." --column "Gruppe"|sed -e 's/\r//g')
+        # PARTICIPANTGROUP=$($ZENITY --entry --text="Gruppe (Namensausschnitt)" --entry-text="$FORM" --title="Teilnehmer"|sed -e 's/\r//g')
+        # echo "$TEACHERLOWER: $PARTICIPANTGROUP|grep \\.$TEACHERLOWER\.."
+      else
+        PARTICIPANTGROUP=$(grep "$FILTER" $GROUPLIST|grep "\.$TEACHERLOWER\.$(date +%Y)$")
+      fi
+    else
+      PARTICIPANTGROUP=$(grep "$FILTER" $GROUPLIST)
+    fi
+    echo Group: $PARTICIPANTGROUP
+    TAGNAME=$($ZENITY --entry --text="Bezeichnung der Fachmarkierung ('Tag')" --entry-text="$SCHOOL_SUBJECT" --title="Schulfach"|sed -e 's/\r//g')
+    STARTDATE=$($ZENITY --calendar --title="Startdatum" --date-format="%d.%m.%Y 9:00"|sed -e 's/\r//g')
+    UNTIS_NEXT_LESSON=$(which next-lesson.sh)
+    if [ -z "$UNTIS_NEXT_LESSON" ] ; then
+      UNTIS_NEXT_LESSON="./next-lesson.sh"
+      if [ ! -x "$UNTIS_NEXT_LESSON" ] ; then
+        UNTIS_NEXT_LESSON="$MYDIR/../../proposito-unitis/bin/next-lesson.sh"
+      fi
+    fi
+    if [ -x "$UNTIS_NEXT_LESSON" ] ; then
+      if $ZENITY --question --title="Untis" --text="Abgabezeit aus dem Untis Stundenplan aus der Startzeit der nächsten Stunde ermitteln?" --no-wrap ; then
+        UNTIS="untis"
+      fi
+    fi
+    if [ -z "$UNTIS" ] ; then
+      ENDDATE=$($ZENITY --calendar --title="Enddatum" --year="$(date -d '+6 days 20' +%Y)" --month="$(date -d '+6 days 20' +%m|sed -e s/^0//g)" --day="$(date -d '+6 days 20' +%d)" --date-format="%d.%m.%Y 20:00"|sed -e 's/\r//g')
+    fi
+    FILENAME=$($ZENITY --file-selection --file-filter="Text|*.txt" --title="Aufgabendatei"|sed -e 's/\r//g'|sed -e 's/C:/\/mnt\/c\//g'|sed -e 's/\\/\//g')
+    XTYPE=$(echo -e "Abhaken\nText\nDatei(en)"|$ZENITY --list --title "Abgabeformat" --text "Was sollen als Ergebnis vorgelegt werden?" --column "Typ"|sed -e 's/\r//g')
+    if [ "$XTYPE" = "Text" ] ; then
+      TYPE="text"
+    fi
+    if [ "$XTYPE" = "Datei(en)" ] ; then
+      TYPE="files"
+    fi
+    # GROUPANDUSER=$($ZENITY --forms --title="Aufgabendatei" --add-entry="Teilnehmergruppe" --add-entry="Einzelteilnehmer")
+    # PARTICIPANTGROUP
+    # PARTICIPANTUSER
+  fi
+fi
+if [ ! -f "$FILENAME" ] ; then
+  echo "File \"$FILENAME\" not found."
+  echo ""
+  usage
+fi
+
 AUTHCHECK=$(grep 'missing.*required.*authorization' $TMPFILE|wc -l)
 if [ "$AUTHCHECK" -gt 0 ] ; then
   echo "You may not issue exercises on this system as user $USERNAME@$BACKEND."
@@ -218,7 +245,7 @@ if [ "$AUTHCHECK" -gt 0 ] ; then
   exit 1
 fi
 TAGS=""
-for tag in $(grep option.va /tmp/lunette.html |sed -e 's/.*"\(.*\)".*/\1/g'|grep ^[0-9]) ; do 
+for tag in $(grep option.va $TMPFILE |sed -e 's/.*"\(.*\)".*/\1/g'|grep ^[0-9]) ; do 
   value=$(grep -A2 value.\"$tag\" $TMPFILE|tail -1|sed -e 's/\ *>\([A-Za-z]*\).*/\1/g')
   # echo "$tag: ${value} ($TAGNAME)"
   if [ "$value" = "$TAGNAME" ] ; then
@@ -235,25 +262,26 @@ fi
 COURSE=$(echo $TAGNAME|sed -e 's/^\([A-Za-z][A-Za-z][A-Za-z]\).*/\1/g')
 COURSELOWER=$(echo $COURSE| tr [:upper:] [:lower:])
 if [ ! -z "$PARTICIPANTGROUP" ] ; then
-  grep option.va $TMPFILE |sed -e 's/.*"\(.*\)".*/\1/g'|grep $(date +%Y) > $GROUPLIST
-  FILTER="$PARTICIPANTGROUP.*\.$(date +%Y)$"
+  FILTER="$PARTICIPANTGROUP"
   if [ $(grep "$FILTER" $GROUPLIST|wc -l) -ne 1 ] ; then
-    FILTER="$COURSELOWER.*$PARTICIPANTGROUP.*\.$(date +%Y)$"
+    FILTER="$PARTICIPANTGROUP.*\.$(date +%Y)$"
     if [ $(grep "$FILTER" $GROUPLIST|wc -l) -ne 1 ] ; then
-      echo "Group specification does not refer to a single group. Please be more specific:"
-      echo ""
-      grep "$PARTICIPANTGROUP.*\.$(date +%Y)$" $GROUPLIST
-      rm -f $TMPFILE $GROUPLIST
-      exit 1
-    else
-      TEACHERLOWER=$(echo $TEACHER|tr [:upper:] [:lower:])
-      # echo "$TEACHERLOWER: $PARTICIPANTGROUP|grep \\.$TEACHERLOWER\.."
-      if [ $(grep "$FILTER" $GROUPLIST|grep \\.$TEACHERLOWER\..|wc -l) -eq 0 ] ; then
+      FILTER="$COURSELOWER.*$PARTICIPANTGROUP.*\.$(date +%Y)$"
+      if [ $(grep "$FILTER" $GROUPLIST|wc -l) -ne 1 ] ; then
         echo "Group specification does not refer to a single group. Please be more specific:"
         echo ""
-        grep "$PARTICIPANTGROUP.*\.$(date +%Y)$" $GROUPLIST
+        grep "$FILTER" $GROUPLIST
         rm -f $TMPFILE $GROUPLIST
         exit 1
+      else
+        TEACHERLOWER=$(echo $TEACHER|tr [:upper:] [:lower:])
+        if [ $(grep "$FILTER" $GROUPLIST|grep \\.$TEACHERLOWER\..|wc -l) -eq 0 ] ; then
+          echo "Group specification does not refer to a single group. Please be more specific:"
+          echo ""
+          grep "$PARTICIPANTGROUP.*\.$(date +%Y)$" $GROUPLIST
+          rm -f $TMPFILE $GROUPLIST
+          exit 1
+        fi
       fi
     fi
   fi
