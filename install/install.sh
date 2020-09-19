@@ -17,8 +17,7 @@
 #
 CHECK=$((which curl;which unzip;which zenity)|wc -l)
 if [ "$CHECK" -lt 3 ] ; then
-  CHECK=$((which apt)|wc -l)
-  if [ "$CHECK" -eq 1 ] ; then
+  if [ "$(which apt|wc -l)" -eq 1 ] && [ -z "$(uname -v|grep Darwin)" ] ; then
     sudo apt update
     sudo apt install -yq curl unzip zenity
   else
@@ -45,7 +44,7 @@ if [ ! -z "$WINDOWS" ] ; then
 else
   ZENITY=zenity
 fi
-if [ -z $(which zenity) ] ; then
+if [ -z "$(which zenity)" ] ; then
   ZENITY=
 fi
 lunette-setup.sh

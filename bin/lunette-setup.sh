@@ -21,7 +21,7 @@ if [ ! -z "$WINDOWS" ] ; then
 else
   ZENITY=zenity
 fi
-if [ -z $(which zenity|wc -l) ] ; then
+if [ -z "$(which zenity)" ] ; then
   ZENITY=
 fi
 
