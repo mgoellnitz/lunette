@@ -45,8 +45,16 @@ Besides the usual manual mode if extracting the files from the distribution
 archive to a place of your chosing and add this to you PATH, a short version 
 for inexperiences users is presented especially on Windows (WSL) systems.
 
-After downloading and extracting the archive call `./install.sh` in the top
-level directory or double-click `install.bat`.
+After downloading and extracting the archive 
+
+### On Windows Systems 
+
+Double click `install.bat`. When asked for a password, use the one given for 
+the `WSL` user. Also answer the questions about the backend system in use.
+
+### On Linux and MacOS Systems
+
+call `./install.sh` in the top level directory and answer the questions.
 
 (This installation method is not meant to be the most elegant way.)
 
