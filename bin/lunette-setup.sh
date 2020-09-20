@@ -33,19 +33,25 @@ if [ -z "$ZENITY" ] ; then
   if [ ! -z "$(echo "$USERNAME"|grep "^[a-z]\.[a-z]")" ] ; then
     echo -n "Your Token: "
     read SCHOOL_TOKEN
+    echo -n "Default School Subject when issuing Exercises:"
+    read ISERV_TAG
   fi
 else  
   ISERV_BACKEND=$($ZENITY --entry --text="iServer Hostname" --entry-text="$(echo $ISERV_BACKEND|sed -e 's/^https:..\(.*\).iserv$/\1/g')" --title="iServ"|sed -e 's/\r//g')
   USERNAME=$($ZENITY --entry --text="iServer Benutzername" --entry-text="$(ls ~/.iserv.*|head -1|sed -e 's/.*.iserv.\(.*\)$/\1/g')" --title="iServ"|sed -e 's/\r//g')
   if [ ! -z "$(echo "$USERNAME"|grep "^[a-z]\.[a-z]")" ] ; then
     SCHOOL_TOKEN=$($ZENITY --entry --text="Kürzel" --entry-text="$SCHOOL_TOKEN" --title="Schule"|sed -e 's/\r//g')
+    ISERV_TAG=$($ZENITY --entry --text="Voreinstellung für das Fachkennzeichen ('Tag')" --entry-text="$ISERV_TAG" --title="Fachauswahl"|sed -e 's/\r//g')
   fi
 fi
 
-grep -v ISERV_BACKEND= ~/.bashrc > brc 
+grep -v ISERV_BACKEND= ~/.bashrc > brc
 mv brc ~/.bashrc
 echo "export ISERV_BACKEND=https://$ISERV_BACKEND/iserv" >> ~/.bashrc
-grep -v SCHOOL_TOKEN= ~/.bashrc > brc 
+grep -v ISERV_TAG= ~/.bashrc > brc
+mv brc ~/.bashrc
+echo "export ISERV_TAG=$ISERV_TAG" >> ~/.bashrc
+grep -v SCHOOL_TOKEN= ~/.bashrc > brc
 mv brc ~/.bashrc
 echo "export SCHOOL_TOKEN=$SCHOOL_TOKEN" >> ~/.bashrc
 echo "# ISERV_BACKEND=https://$ISERV_BACKEND/iserv" > ~/.iserv.$USERNAME
