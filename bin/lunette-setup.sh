@@ -30,12 +30,16 @@ if [ -z "$ZENITY" ] ; then
   read ISERV_BACKEND
   echo -n "iServ Username: "
   read USERNAME
-  echo -n "Your Token: "
-  read SCHOOL_TOKEN
+  if [ ! -z "$(echo "$USERNAME"|grep "^[a-z]\.[a-z]")" ] ; then
+    echo -n "Your Token: "
+    read SCHOOL_TOKEN
+  fi
 else  
   ISERV_BACKEND=$($ZENITY --entry --text="iServer Hostname" --entry-text="$(echo $ISERV_BACKEND|sed -e 's/^https:..\(.*\).iserv$/\1/g')" --title="iServ"|sed -e 's/\r//g')
   USERNAME=$($ZENITY --entry --text="iServer Benutzername" --entry-text="$(ls ~/.iserv.*|head -1|sed -e 's/.*.iserv.\(.*\)$/\1/g')" --title="iServ"|sed -e 's/\r//g')
-  SCHOOL_TOKEN=$($ZENITY --entry --text="Kürzel" --entry-text="$SCHOOL_TOKEN" --title="Schule"|sed -e 's/\r//g')
+  if [ ! -z "$(echo "$USERNAME"|grep "^[a-z]\.[a-z]")" ] ; then
+    SCHOOL_TOKEN=$($ZENITY --entry --text="Kürzel" --entry-text="$SCHOOL_TOKEN" --title="Schule"|sed -e 's/\r//g')
+  fi
 fi
 
 grep -v ISERV_BACKEND= ~/.bashrc > brc 
