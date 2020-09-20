@@ -7,15 +7,18 @@
 "Hacking iServ for Fun and ... whatever."
 
 After getting past the cookie and login stuff I started to address the following
-objectives with a generic collection of command line scripts.
+objectives with a generic collection of command line scripts:
 
 * collecting tasks and materials for offline use in student's view
 * collecting submissions for tasks for offline use in teacher's view
 * easier handling of new exercises with automated parameter selection
 
-The scripts are mainly used with GNU/Linux  but are also partially tested with
-a Windows Subsystem for Linux and a Debian install from the store on top of
-that.
+The scripts are mainly used with GNU/Linux but are also partially tested with
+MacOS and also Windows Systems with a `Windows Subsystem for Linux` and a Debian
+distribution install from the store on top of that.
+
+A limitted GUI feeling is achived through the a simple dialog-to-shell tool
+(`zenity`) for GNU/Linux and Windows.
 
 ## Feedback
 
@@ -41,9 +44,10 @@ Windows Subsystem for Linux (WSL) is installed and a linux distribution
 
 ## Installation
 
-Besides the usual manual mode if extracting the files from the distribution 
-archive to a place of your chosing and add this to you PATH, a short version 
-for inexperiences users is presented especially on Windows (WSL) systems.
+Besides the usual manual mode if extracting the files from the distribution
+archive to a place of your chosing and add this to you PATH-variable, a short
+version for inexperiences users is presented especially on Windows (WSL)
+systems.
 
 After downloading and extracting the archive 
 
