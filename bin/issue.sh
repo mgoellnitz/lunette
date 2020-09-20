@@ -204,7 +204,7 @@ if [ -z "$PARTICIPANTUSER" ] && [ -z "$PARTICIPANTGROUP" ] ; then
       PARTICIPANTGROUP=$(grep "$FILTER" $GROUPLIST)
     fi
     echo Group: $PARTICIPANTGROUP
-    TAGNAME=$($ZENITY --entry --text="Bezeichnung der Fachmarkierung ('Tag')" --entry-text="$ISERV_TAG" --title="Schulfach"|sed -e 's/\r//g')
+    TAGNAME=$($ZENITY --entry --text="Bezeichnung der Fachmarkierung ('Tag')" --entry-text="$TAGNAME" --title="Schulfach"|sed -e 's/\r//g')
     STARTDATE=$($ZENITY --calendar --title="Startdatum" --date-format="%d.%m.%Y 9:00"|sed -e 's/\r//g')
     UNTIS_NEXT_LESSON=$(which next-lesson.sh)
     if [ -z "$UNTIS_NEXT_LESSON" ] ; then
@@ -352,25 +352,35 @@ TOKEN=$(grep -A1 exercise__token $TMPFILE |grep value|sed -e 's/.*value="\([0-9a
 TITLE="$COURSE $TITLEPREFIX$TEACHER - $EXERCISETITLE"
 TEXT=$(cat "$FILENAME")
 
-echo "$TITLE: ($TYPE) [$TOKEN]"
-echo "$STARTDATE - $ENDDATE - $TAGNAME ($TAGS)"
-echo ""
-echo "$TEXT"
-echo ""
-echo "Participating group: $PARTICIPANTGROUP - Single participant: $PARTICIPANTUSER"
+if [ -z "$ZENITY" ] ; then
+  echo "$TITLE: ($TYPE) [$TOKEN]"
+  echo "$STARTDATE - $ENDDATE - $TAGNAME ($TAGS)"
+  echo ""
+  echo "$TEXT"
+  echo ""
+  echo "Participating group: $PARTICIPANTGROUP - Single participant: $PARTICIPANTUSER"
+fi
 
 if [ -z $ISSUE ] ; then
-  echo ""
-  echo -n "Issue exercise this way? (j/n)"
-  read -s ISSUE
-  if [ "$ISSUE" != "j" ] ; then
-    ISSUE=
+  if [ -z "$ZENITY" ] ; then
+    echo ""
+    echo -n "Issue exercise this way? (j/n)"
+    read -s ISSUE
+    if [ "$ISSUE" != "j" ] ; then
+      ISSUE=
+    fi
+    echo ""
+  else
+    if $ZENITY --question --title="$TITLE ($TAGNAME)" --text="Zur Abgabe $ENDDATE als \"$TYPE\" (Start: $STARTDATE)\n\nTeilnehmer: $PARTICIPANTGROUP $PARTICIPANTUSER\n\n$TEXT\n\nMöchten Sie die Aufgabe so stellen?" --no-wrap ; then
+      ISSUE="j"
+    fi
   fi
-  echo ""
 fi
 
 if [ ! -z "$ISSUE" ] ; then
-  echo "Issuing exercise."
+  if [ -z "$ZENITY" ] ; then
+    echo "Issuing exercise."
+  fi
   EXERCISE="exercise[title]=$TITLE"
   EXERCISE="${EXERCISE}&exercise[startDate]=$STARTDATE"
   EXERCISE="${EXERCISE}&exercise[endDate]=$ENDDATE"
@@ -393,5 +403,8 @@ if [ ! -z "$ISSUE" ] ; then
   # echo "Done."
 
   # echo "System result URL: $DATA"
+  if [ ! -z "$ZENITY" ] ; then
+    $ZENITY --info --title="Einen schönen Arbeitstag noch..." --text="Sie haben die Aufgabe gestellt.\n\n(Gucken Sie ruhig im Browser noch einmal kurz in die Liste.)" --no-wrap
+  fi
 fi
 rm -f $TMPFILE $GROUPLIST $USERLIST
