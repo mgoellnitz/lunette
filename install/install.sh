@@ -28,11 +28,13 @@ if [ "$CHECK" -lt 3 ] ; then
 fi
 sudo cp bin/*.sh /usr/local/bin
 sudo cp linux/lunette.jpg /usr/local/lib
-if [ -d ~/Schreibtisch ] ; then
-  cp linux/Lunette.desktop ~/Schreibtisch
-fi
-if [ -d ~/Desktop ] ; then
-  cp linux/Lunette.desktop ~/Desktop
+if [ -z "$(uname -v|grep Darwin)" ] ; then
+  if [ -d ~/Schreibtisch ] ; then
+    cp linux/Lunette.desktop ~/Schreibtisch
+  fi
+  if [ -d ~/Desktop ] ; then
+    cp linux/Lunette.desktop ~/Desktop
+  fi
 fi
 WINDOWS=$(uname -a|grep Microsoft)
 if [ ! -z "$WINDOWS" ] && [ ! -f /usr/local/bin/zenity.exe ] ; then
