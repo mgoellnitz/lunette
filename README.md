@@ -17,7 +17,7 @@ The scripts are mainly used with GNU/Linux but are also partially tested with
 MacOS and also Windows Systems with a `Windows Subsystem for Linux` and a Debian
 distribution install from the store on top of that.
 
-A limitted GUI feeling is achived through the a simple dialog-to-shell tool
+A limited GUI feeling is achived through the a simple dialog-to-shell tool
 (`zenity`) for GNU/Linux and Windows.
 
 ## Feedback
