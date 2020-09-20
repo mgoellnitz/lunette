@@ -128,6 +128,7 @@ FILENAME=$(echo -E $FILENAME|sed -e 's/___/ /g'|sed -e 's/C:/\/mnt\/c/g')
 if [ "$FILENAME" = "=/" ] ; then
   FILENAME=
 fi
+EXERCISETITLE=$(basename "$FILENAME" .txt)
 
 if [ -z "$TEACHER" ] ; then
   echo "No teacher token issued."
@@ -222,7 +223,9 @@ if [ -z "$PARTICIPANTUSER" ] && [ -z "$PARTICIPANTGROUP" ] ; then
     fi
     if [ -z "$FILENAME" ] ; then
       FILENAME=$($ZENITY --file-selection --file-filter="Text|*.txt" --title="Aufgabendatei"|sed -e 's/\r//g'|sed -e 's/C:/\/mnt\/c\//g'|sed -e 's/\\/\//g')
+      EXERCISETITLE=$(basename "$FILENAME" .txt)
     fi
+    EXERCISETITLE=$($ZENITY --entry --text="Titel (ohne Metadaten wie Datum, Lehrkraft, Fach, Stufe oder Klasse)" --entry-text="$EXERCISETITLE" --title="Aufgabentitel"|sed -e 's/\r//g')
     XTYPE=$($ZENITY --list --title "Abgabeformat" --text "Was sollen als Ergebnis vorgelegt werden?" --column "Typ" Abhaken Text 'Datei(en)'|sed -e 's/\r//g')
     if [ "$XTYPE" = "Text" ] ; then
       TYPE="text"
@@ -346,7 +349,7 @@ if [ ! -z "$UNTIS" ] ; then
 fi
 
 TOKEN=$(grep -A1 exercise__token $TMPFILE |grep value|sed -e 's/.*value="\([0-9a-zA-Z_\-]*\).*/\1/g')
-TITLE="$COURSE $TITLEPREFIX$TEACHER - $(basename "$FILENAME" .txt)"
+TITLE="$COURSE $TITLEPREFIX$TEACHER - $EXERCISETITLE"
 TEXT=$(cat "$FILENAME")
 
 echo "$TITLE: ($TYPE) [$TOKEN]"
