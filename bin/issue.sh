@@ -252,7 +252,7 @@ if [ "$AUTHCHECK" -gt 0 ] ; then
 fi
 TAGS=""
 for tag in $(grep option.va $TMPFILE |sed -e 's/.*"\(.*\)".*/\1/g'|grep ^[0-9]) ; do 
-  value=$(grep -A2 value.\"$tag\" $TMPFILE|tail -1|sed -e 's/\ *>\([A-Za-z]*\).*/\1/g')
+  value=$(grep -A2 value.\"$tag\" $TMPFILE|tail -1|sed -e 's/\ *>\([A-Za-z][A-Za-z\ ]*\).*/\1/g')
   # echo "$tag: ${value} ($TAGNAME)"
   if [ "$value" = "$TAGNAME" ] ; then
     TAGS="$tag"
