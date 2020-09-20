@@ -204,7 +204,7 @@ if [ -z "$PARTICIPANTUSER" ] && [ -z "$PARTICIPANTGROUP" ] ; then
       PARTICIPANTGROUP=$(grep "$FILTER" $GROUPLIST)
     fi
     echo Group: $PARTICIPANTGROUP
-    TAGNAME=$($ZENITY --entry --text="Bezeichnung der Fachmarkierung ('Tag')" --entry-text="$TAGNAME" --title="Schulfach"|sed -e 's/\r//g')
+    TAGNAME=$($ZENITY --entry --text="Fachkennzeichen ('Tag')" --entry-text="$TAGNAME" --title="Schulfach"|sed -e 's/\r//g')
     STARTDATE=$($ZENITY --calendar --title="Startdatum" --date-format="%d.%m.%Y 9:00"|sed -e 's/\r//g')
     UNTIS_NEXT_LESSON=$(which next-lesson.sh)
     if [ -z "$UNTIS_NEXT_LESSON" ] ; then
@@ -239,9 +239,19 @@ if [ -z "$PARTICIPANTUSER" ] && [ -z "$PARTICIPANTGROUP" ] ; then
   fi
 fi
 if [ ! -f "$FILENAME" ] ; then
-  echo "File \"$FILENAME\" not found."
-  echo ""
-  usage
+  if [ -z "$ZENITY" ] ; then
+    echo "File \"$FILENAME\" not found."
+    echo ""
+    usage
+  else
+    CONTENT=$($ZENITY --text-info  --title="Neuer Aufgabentext"  --editable)
+  fi
+else
+  if [ ! -z "$ZENITY" ] ; then
+    CONTENT=$($ZENITY --text-info  --title="Aufgabentext anpassen"  --editable  --filename="$FILENAME")
+  else
+    CONTENT="(cat "$FILENAME")
+  fi
 fi
 
 AUTHCHECK=$(grep 'missing.*required.*authorization' $TMPFILE|wc -l)
@@ -350,13 +360,12 @@ fi
 
 TOKEN=$(grep -A1 exercise__token $TMPFILE |grep value|sed -e 's/.*value="\([0-9a-zA-Z_\-]*\).*/\1/g')
 TITLE="$COURSE $TITLEPREFIX$TEACHER - $EXERCISETITLE"
-TEXT=$(cat "$FILENAME")
 
 if [ -z "$ZENITY" ] ; then
   echo "$TITLE: ($TYPE) [$TOKEN]"
   echo "$STARTDATE - $ENDDATE - $TAGNAME ($TAGS)"
   echo ""
-  echo "$TEXT"
+  echo "$CONTENT"
   echo ""
   echo "Participating group: $PARTICIPANTGROUP - Single participant: $PARTICIPANTUSER"
 fi
@@ -364,14 +373,23 @@ fi
 if [ -z $ISSUE ] ; then
   if [ -z "$ZENITY" ] ; then
     echo ""
-    echo -n "Issue exercise this way? (j/n)"
+    echo -n "Issue exercise this way? (j/n [Return])"
     read -s ISSUE
     if [ "$ISSUE" != "j" ] ; then
       ISSUE=
     fi
     echo ""
   else
-    if $ZENITY --question --title="$TITLE ($TAGNAME)" --text="Zur Abgabe $ENDDATE als \"$TYPE\" (Start: $STARTDATE)\n\nTeilnehmer: $PARTICIPANTGROUP $PARTICIPANTUSER\n\n$TEXT\n\nMöchten Sie die Aufgabe so stellen?" --no-wrap ; then
+    if [ "$TYPE" = "files" ] ; then
+      XTYPE="Datei(en)"
+    fi
+    if [ "$TYPE" = "text" ] ; then
+      XTYPE="Text"
+    fi
+    if [ "$TYPE" = "confirmation" ] ; then
+      XTYPE="Bestätigung"
+    fi
+    if $ZENITY --question --title="$TITLE ($TAGNAME)" --text="Zur Abgabe $ENDDATE als \"$XTYPE\" (Start: $STARTDATE)\n\nTeilnehmer: $PARTICIPANTGROUP $PARTICIPANTUSER\n\n$CONTENT\n\nMöchten Sie die Aufgabe so stellen?" --no-wrap ; then
       ISSUE="j"
     fi
   fi
@@ -391,7 +409,7 @@ if [ ! -z "$ISSUE" ] ; then
   if [ ! -z "$PARTICIPANTGROUP" ] ; then
     EXERCISE="${EXERCISE}&exercise[participantGroups][]=$PARTICIPANTGROUP"
   fi
-  EXERCISE="${EXERCISE}&exercise[text]=$TEXT"
+  EXERCISE="${EXERCISE}&exercise[text]=$CONTENT"
   EXERCISE="${EXERCISE}&exercise[tags][]=$TAGS"
   EXERCISE="${EXERCISE}&exercise[uploadedTempFiles][picker][]="
   EXERCISE="${EXERCISE}&exercise[actions][submit]="
