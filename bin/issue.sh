@@ -123,8 +123,8 @@ while [ "$PSTART" = "-" ] ; do
   shift
   PSTART=`echo $1|sed -e 's/^\(.\).*/\1/g'`
 done
-FILENAME=${1}
-FILENAME=$(echo -E $FILENAME|sed -e 's/C:/\/mnt\/c/g')
+FILENAME="$@"
+FILENAME=$(echo -E $FILENAME|sed -e 's/___/ /g'|sed -e 's/C:/\/mnt\/c/g')
 if [ "$FILENAME" = "=/" ] ; then
   FILENAME=
 fi
@@ -193,7 +193,7 @@ if [ -z "$PARTICIPANTUSER" ] && [ -z "$PARTICIPANTGROUP" ] ; then
         else
           FILTER="$FORM\.$(date +%Y)$"
         fi
-        PARTICIPANTGROUP=$($ZENITY --list --title "Teilnehmer" --text "Bitte wählen Sie genau eine Gruppe aus." --column "Gruppe" $(grep "$FILTER" $GROUPLIST)|sed -e 's/\r//g')
+        PARTICIPANTGROUP=$($ZENITY --list --title "Teilnehmer" --text "Bitte wählen Sie genau eine Gruppe aus." --column "Gruppe" $(grep "$FILTER" $GROUPLIST)|sed -e 's/\r//g'|cut -d '|' -f 1)
         # PARTICIPANTGROUP=$($ZENITY --entry --text="Gruppe (Namensausschnitt)" --entry-text="$FORM" --title="Teilnehmer"|sed -e 's/\r//g')
         # echo "$TEACHERLOWER: $PARTICIPANTGROUP|grep \\.$TEACHERLOWER\.."
       else
