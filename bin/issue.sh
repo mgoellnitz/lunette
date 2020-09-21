@@ -17,6 +17,8 @@
 #
 MYNAME=`basename $0`
 MYDIR=`dirname $0`
+LIBDIR=$MYDIR/../shared/lunette
+source $LIBDIR/lib.sh
 TMPFILE="/tmp/lunette.html"
 GROUPLIST="/tmp/lunette.groups"
 USERLIST="/tmp/lunette.users"
@@ -35,6 +37,7 @@ function usage {
    echo "  -m form          when dealing with single person exercises, add their form they are in here explicitly"
    echo "  -s subject       subject given as a valid tag name (default $ISERV_TAG)"
    echo "  -a abb           teacher identification code as abbrevation (default $SCHOOL_TOKEN)"
+   echo "  -l language         set ISO-639 language code for output messages (except this one)"
    echo "  -u pattern       login of the user to read given exercise for"
    echo "     filename.txt  filename of the basic description file for a new exercise"
    echo ""
@@ -58,16 +61,6 @@ FORM=""
 PARTICIPANTUSER=""
 PARTICIPANTGROUP=""
 UNTIS=""
-
-WINDOWS=$(uname -a|grep Microsoft)
-if [ ! -z "$WINDOWS" ] ; then
-  ZENITY=zenity.exe
-else
-  ZENITY=zenity
-fi
-if [ -z "$(which zenity)" ] ; then
-  ZENITY=
-fi
 
 PSTART=`echo $1|sed -e 's/^\(.\).*/\1/g'`
 DOWNLOAD=false
@@ -103,6 +96,10 @@ while [ "$PSTART" = "-" ] ; do
     shift
     PARTICIPANTGROUP=${1}
   fi
+  if [ "$1" = "-l" ] ; then
+    shift
+    export LANGUAGE="$1"
+  fi
   if [ "$1" = "-m" ] ; then
     shift
     FORM=${1}
@@ -131,7 +128,7 @@ fi
 EXERCISETITLE=$(basename "$FILENAME" .txt)
 
 if [ -z "$TEACHER" ] ; then
-  echo "No teacher token issued."
+  echo "$(message "no_token")"
   echo ""
   usage
 fi
@@ -139,13 +136,13 @@ TEACHERLOWER=$(echo $TEACHER|tr [:upper:] [:lower:])
 
 PROFILE=$(ls ~/.iserv.*${PATTERN}*|head -1)
 if [ -z "$PROFILE" ] ; then
-  echo "Error: No active session found. Did you issue 'create session'?"
+  echo "$(message "no_session")"
   echo ""
   if [ -z "$PATTERN" ] ; then
     if [ -z "$BACKEND" ] ; then
       exit 1
     else
-      echo -n "Enter $BACKEND user name: "
+      echo -n "$(message "enter_username_for") $BACKEND: "
       read PATTERN
     fi
   fi
@@ -162,19 +159,19 @@ else
   curl -b ~/.iserv.$USERNAME $BACKEND/exercise/manage/exercise/add 2> /dev/null >$TMPFILE
   SESSIONCHECK=$(grep 'Redirecting.to.*.login' $TMPFILE)
   if [ ! -z "$SESSIONCHECK" ] ; then
-    echo "Error: Session expired."
+    echo "$(message "expired")"
     $MYDIR/createsession.sh $USERNAME $BACKEND
     curl -b ~/.iserv.$USERNAME $BACKEND/exercise/manage/exercise/add 2> /dev/null >$TMPFILE
   fi
 fi
-echo "Creating Exercise for $USERNAME@$BACKEND"
+echo "$(message "creating_exercise_for") $USERNAME@$BACKEND"
 if [ $(cat $TMPFILE|wc -l) -eq 0 ] ; then
   SESSIONCHECK="There is no result"
 else
   SESSIONCHECK=$(grep 'Redirecting.to.*.login' $TMPFILE)
 fi
 if [ ! -z "$SESSIONCHECK" ] ; then
-  echo "Not logged in."
+  echo "$(message "no_login")"
   rm -f $TMPFILE
   exit 1
 fi
@@ -182,6 +179,8 @@ fi
 grep option.va $TMPFILE |sed -e 's/.*"\(.*\)".*/\1/g'|grep $(date +%Y) > $GROUPLIST
 if [ -z "$PARTICIPANTUSER" ] && [ -z "$PARTICIPANTGROUP" ] ; then
   if [ -z "$ZENITY" ] ; then
+    echo "$(message "no_participant")"
+    echo ""
     usage
   else
     FORM=$($ZENITY --entry --text="Klasse (für Oberstufe die Stufe)" --entry-text="$SCHOOL_FORM" --title="Aufgabendatei"|sed -e 's/\r//g')
@@ -244,11 +243,11 @@ if [ ! -f "$FILENAME" ] ; then
     echo ""
     usage
   else
-    CONTENT=$($ZENITY --text-info  --title="Neuer Aufgabentext"  --editable)
+    CONTENT=$($ZENITY --text-info  --title="$(message "new_exercise")"  --editable)
   fi
 else
   if [ ! -z "$ZENITY" ] ; then
-    CONTENT=$($ZENITY --text-info  --title="Aufgabentext anpassen"  --editable  --filename="$FILENAME")
+    CONTENT=$($ZENITY --text-info  --title="$(message "modify_exercise")"  --editable  --filename="$FILENAME")
   else
     CONTENT="(cat "$FILENAME")
   fi
@@ -417,9 +416,6 @@ if [ ! -z "$ISSUE" ] ; then
   # echo $EXERCISE
   DATA=$(curl -b ~/.iserv.$USERNAME -H "Content-type: application/x-www-form-urlencoded" -X POST -D - \
               -d "$EXERCISE" $BACKEND/exercise/manage/exercise/add 2> /dev/null > /tmp/lunette.analyze|grep ^Location: /tmp/lunette.analyze |cut -d ' ' -f 2)
-  # echo "$DATA" > /tmp/lunette.analyze
-  # echo "Done."
-
   # echo "System result URL: $DATA"
   if [ ! -z "$ZENITY" ] ; then
     $ZENITY --info --title="Einen schönen Arbeitstag noch..." --text="Sie haben die Aufgabe gestellt.\n\n(Gucken Sie ruhig im Browser noch einmal kurz in die Liste.)" --no-wrap

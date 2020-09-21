@@ -36,24 +36,22 @@ if [ -z "$(uname -v|grep Darwin)" ] ; then
     cp linux/Lunette.desktop ~/Desktop
   fi
 fi
-WINDOWS=$(uname -a|grep Microsoft)
+sudo cp -r shared/* /usr/local/shared
+MYDIR=$(dirname $BASH_SOURCE)|sed -e 's/install\///g'|sed -e 's/^.bin/\./g'
+if [ -z "$MYDIR" ] ; then
+  MYDIR="."
+fi
+LIBDIR=$MYDIR/shared/lunette
+source $MYDIR/shared/lunette/lib.sh
 if [ ! -z "$WINDOWS" ] && [ ! -f /usr/local/bin/zenity.exe ] ; then
   curl -Lo zenity.zip https://github.com/maravento/winzenity/raw/master/zenity.zip 2> /dev/null
   unzip zenity.zip
   sudo mv zenity.exe /usr/local/bin
   rm zenity.zip
 fi
-if [ ! -z "$WINDOWS" ] ; then
-  ZENITY=zenity.exe
-else
-  ZENITY=zenity
-fi
-if [ -z "$(which zenity)" ] ; then
-  ZENITY=
-fi
 lunette-setup.sh
 if [ -z "$ZENITY" ] ; then
-  echo "Installation finished."
+  echo "$(message "installation_completed")"
 else
-  $ZENITY --info --title="Installation" --text="Die Installation ist abgeschlossen." --no-wrap
+  $ZENITY --info --title="$(message "installation")" --text="$(message "installation_completed")" --no-wrap
 fi

@@ -17,6 +17,8 @@
 #
 MYNAME=`basename $0`
 MYDIR=`dirname $0`
+LIBDIR=$MYDIR/../shared/lunette
+source $LIBDIR/lib.sh
 TMPFILE="/tmp/lunette.html"
 
 function usage {
@@ -55,13 +57,13 @@ FILTER=${1:-.*}
 BACKEND=$ISERV_BACKEND
 PROFILE=$(ls ~/.iserv.*${PATTERN}*|head -1)
 if [ -z "$PROFILE" ] ; then
-  echo "Error: No active session found. Did you issue 'create session'?"
+  echo "$(message "no_session")"
   echo ""
   if [ -z "$PATTERN" ] ; then
     if [ -z "$BACKEND" ] ; then
       exit 1
     else
-      echo -n "Enter $BACKEND user name: "
+      echo -n "$(message "enter_username_for") $BACKEND: "
       read PATTERN
     fi
   fi
@@ -78,7 +80,7 @@ else
   curl -b ~/.iserv.$USERNAME $BACKEND/exercise 2> /dev/null >$TMPFILE
   SESSIONCHECK=$(grep 'Redirecting.to.*.login' $TMPFILE)
   if [ ! -z "$SESSIONCHECK" ] ; then
-    echo "Error: Session expired."
+    echo "$(message "expired")"
     $MYDIR/createsession.sh $USERNAME $BACKEND
     curl -b ~/.iserv.$USERNAME $BACKEND/exercise 2> /dev/null >$TMPFILE
   fi
@@ -86,7 +88,7 @@ fi
 echo "Exercises for $USERNAME@$BACKEND"
 SESSIONCHECK=$(grep 'Redirecting.to.*.login' $TMPFILE)
 if [ ! -z "$SESSIONCHECK" ] ; then
-  echo "Not logged in."
+  echo "$(message "no_login")"
   exit 1
 fi
 

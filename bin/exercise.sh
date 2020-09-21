@@ -17,6 +17,8 @@
 #
 MYNAME=`basename $0`
 MYDIR=`dirname $0`
+LIBDIR=$MYDIR/../shared/lunette
+source $LIBDIR/lib.sh
 TMPFILE="/tmp/lunette.html"
 
 function usage {
@@ -58,13 +60,13 @@ fi
 BACKEND=$ISERV_BACKEND
 PROFILE=$(ls ~/.iserv.*${PATTERN}*|head -1)
 if [ -z "$PROFILE" ] ; then
-  echo "Error: No active session found. Did you issue 'create session'?"
+  echo "$(message "no_session")"
   echo ""
   if [ -z "$PATTERN" ] ; then
     if [ -z "$BACKEND" ] ; then
       exit 1
     else
-      echo -n "Enter $BACKEND user name: "
+      echo -n "$(message "enter_username_for") $BACKEND: "
       read PATTERN
     fi
   fi
@@ -81,15 +83,15 @@ else
   curl -b ~/.iserv.$USERNAME $BACKEND/exercise 2> /dev/null >$TMPFILE
   SESSIONCHECK=$(grep 'Redirecting.to.*.login' $TMPFILE)
   if [ ! -z "$SESSIONCHECK" ] ; then
-    echo "Error: Session expired."
+    echo "$(message "expired")"
     $MYDIR/createsession.sh $USERNAME
     curl -b ~/.iserv.$USERNAME $BACKEND/exercise 2> /dev/null >$TMPFILE
   fi
 fi
-echo "Exercise $EXERCISE for $USERNAME@$BACKEND"
+echo "$(message "exercise") $EXERCISE $(message "for") $USERNAME@$BACKEND"
 SESSIONCHECK=$(grep 'Redirecting.to.*.login' $TMPFILE)
 if [ ! -z "$SESSIONCHECK" ] ; then
-  echo "Not logged in."
+  echo "$(message "no_login")"
   exit 1
 fi
 
@@ -104,7 +106,7 @@ LINE_COUNT=$(wc -l $TMPFILE|cut -d ' ' -f 1)
 
 DESC_START_LINE=$(cat $TMPFILE|grep -n Beschreibung|cut -d ':' -f 1)
 if [ -z "$DESC_START_LINE" ] ; then
-  echo "No exercise with the given ID found"
+  echo "$(message "no_exercise")"
   exit
 fi
 DESC_TAIL_COUNT=$(echo $[ $LINE_COUNT - $DESC_START_LINE ])
@@ -122,7 +124,7 @@ echo ": $TITLE ($AUTHOR)"
 tail -$DESC_TAIL_COUNT $TMPFILE|head -$DESC_LINE_COUNT|sed -e 's/<br..>//g'|sed -e 's/<.td>//g'|sed -e 's/<.tr>//g'|sed -e 's/^.*<td.*>//g'
 if [ $(cat $TMPFILE|grep iserv.img.default|wc -l) -ge 1 ] ; then
   echo ""
-  echo "Attachments:"
+  echo "$(message "attachments"):"
   cat $TMPFILE|grep iserv.img.default|sed -e 's/^.*li.class.*a.href."\(.*\)"..img.class.*src=".*png".\(.*\)/\2/g'
   if [ "$DOWNLOAD" = "true" ] ; then
     mkdir -p $EXERCISE
@@ -137,8 +139,7 @@ fi
 
 if [ $(cat $TMPFILE|grep -n -A1 panel-body|grep ':'|wc -l) -gt 1 ] ; then
   echo ""
-  echo "Feedback:"
+  echo "$(message "feedback"):"
   tail -$CORR_TAIL_COUNT $TMPFILE|head -$CORR_LINE_COUNT|sed -e 's/<br..>//g'|sed -e 's/<.td>//g'|sed -e 's/<.tr>//g'|sed -e 's/^.*<td>//g'
 fi
-
-rm $TMPFILE
+rm -f $TMPFILE
