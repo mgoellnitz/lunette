@@ -1,2 +1,2 @@
 @echo off
-bash -c "switch_subject.sh"
+bash -i -c "switch_subject.sh"

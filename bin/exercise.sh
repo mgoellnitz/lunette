@@ -24,6 +24,7 @@ TMPFILE="/tmp/lunette.html"
 function usage {
    echo "Usage: $MYNAME [-u username] [-d] exerciseid"
    echo ""
+   echo "  -l language    set ISO-639 language code for output messages (except this one)"
    echo "  -u pattern     login of the user to read given exercise for"
    echo "  -d             download exercise attachments into a subfolder"
    echo "                 named following the exercise id"
@@ -45,6 +46,10 @@ while [ "$PSTART" = "-" ] ; do
   if [ "$1" = "-d" ] ; then
     DOWNLOAD="true"
   fi
+  if [ "$1" = "-l" ] ; then
+    shift
+    export LANGUAGE=${1}
+  fi
   if [ "$1" = "-u" ] ; then
     shift
     PATTERN=${1}
@@ -60,17 +65,17 @@ fi
 BACKEND=$ISERV_BACKEND
 PROFILE=$(ls ~/.iserv.*${PATTERN}*|head -1)
 if [ -z "$PROFILE" ] ; then
-  echo "$(message "no_session")"
+  echo "$(message no_session)"
   echo ""
   if [ -z "$PATTERN" ] ; then
     if [ -z "$BACKEND" ] ; then
       exit 1
     else
-      echo -n "$(message "enter_username_for") $BACKEND: "
+      echo -n "$(message enter_username_for) $BACKEND: "
       read PATTERN
     fi
   fi
-  $MYDIR/createsession.sh $PATTERN
+  $MYDIR/createsession.sh -k $PATTERN
   PROFILE=$(ls ~/.iserv.*${PATTERN}*|head -1)
   BACKEND=$(cat $PROFILE|grep ISERV_BACKEND|sed -e 's/#.ISERV_BACKEND=//g')
   PROFILE=$(basename $PROFILE)
@@ -83,15 +88,15 @@ else
   curl -b ~/.iserv.$USERNAME $BACKEND/exercise 2> /dev/null >$TMPFILE
   SESSIONCHECK=$(grep 'Redirecting.to.*.login' $TMPFILE)
   if [ ! -z "$SESSIONCHECK" ] ; then
-    echo "$(message "expired")"
-    $MYDIR/createsession.sh $USERNAME
+    echo "$(message expired)"
+    $MYDIR/createsession.sh -k $USERNAME
     curl -b ~/.iserv.$USERNAME $BACKEND/exercise 2> /dev/null >$TMPFILE
   fi
 fi
-echo "$(message "exercise") $EXERCISE $(message "for") $USERNAME@$BACKEND"
+echo "$(message exercise) $EXERCISE $(message for) $USERNAME@$BACKEND"
 SESSIONCHECK=$(grep 'Redirecting.to.*.login' $TMPFILE)
 if [ ! -z "$SESSIONCHECK" ] ; then
-  echo "$(message "no_login")"
+  echo "$(message no_login)"
   exit 1
 fi
 
@@ -106,7 +111,7 @@ LINE_COUNT=$(wc -l $TMPFILE|sed -e 's/^\ *//g'|cut -d ' ' -f 1)
 
 DESC_START_LINE=$(cat $TMPFILE|grep -n Beschreibung|cut -d ':' -f 1)
 if [ -z "$DESC_START_LINE" ] ; then
-  echo "$(message "no_exercise")"
+  echo "$(message no_exercise)"
   exit
 fi
 DESC_TAIL_COUNT=$(echo $[ $LINE_COUNT - $DESC_START_LINE ])
@@ -124,7 +129,7 @@ echo ": $TITLE ($AUTHOR)"
 tail -$DESC_TAIL_COUNT $TMPFILE|head -$DESC_LINE_COUNT|sed -e 's/<br..>//g'|sed -e 's/<.td>//g'|sed -e 's/<.tr>//g'|sed -e 's/^.*<td.*>//g'
 if [ $(cat $TMPFILE|grep iserv.img.default|wc -l) -ge 1 ] ; then
   echo ""
-  echo "$(message "attachments"):"
+  echo "$(message attachments):"
   cat $TMPFILE|grep iserv.img.default|sed -e 's/^.*li.class.*a.href."\(.*\)"..img.class.*src=".*png".\(.*\)/\2/g'
   if [ "$DOWNLOAD" = "true" ] ; then
     mkdir -p $EXERCISE
@@ -139,7 +144,7 @@ fi
 
 if [ $(cat $TMPFILE|grep -n -A1 panel-body|grep ':'|wc -l) -gt 1 ] ; then
   echo ""
-  echo "$(message "feedback"):"
+  echo "$(message feedback):"
   tail -$CORR_TAIL_COUNT $TMPFILE|head -$CORR_LINE_COUNT|sed -e 's/<br..>//g'|sed -e 's/<.td>//g'|sed -e 's/<.tr>//g'|sed -e 's/^.*<td>//g'
 fi
 rm -f $TMPFILE

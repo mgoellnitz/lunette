@@ -23,6 +23,7 @@ source $LIBDIR/lib.sh
 function usage {
    echo "Usage: $MYNAME username [backend]"
    echo ""
+   echo "  -k           use plain console version without dialogs"
    echo "  -l language  set ISO-639 language code for output messages (except this one)"
    echo "     username  login of the user without domain name and the like"
    echo "     backend   backend in the form of a base URL including a trailing /iserv"
@@ -35,6 +36,10 @@ while [ "$PSTART" = "-" ] ; do
   if [ "$1" = "-h" ] ; then
     usage
     exit
+  fi
+  if [ "$1" = "-k" ] ; then
+    GUI=
+    ZENITY=
   fi
   if [ "$1" = "-l" ] ; then
     shift
@@ -51,18 +56,13 @@ if [ -z "$USERNAME" ] ; then
 fi
 
 if [ -z "$BACKEND" ] ; then
-   echo "$(message "no_backend")"
+   echo "$(message no_backend)"
    exit
 fi
 
-if [ -z "$ZENITY" ] ; then
-  echo -n "$(message "password_for") $USERNAME@$BACKEND: "
-  read -s PASSWORD
-else
-  PASSWORD=$($ZENITY --entry --text="$(message "password_for") $USERNAME@$BACKEND" --entry-text="$PASSWORD" --hide-text --title="iServ - $BACKEND"|sed -e 's/\r//g')
-fi
+PASSWORD=$(password_input "iServ - $BACKEND" "$(message password_for) $USERNAME@$BACKEND" "$PASSWORD")
 
-echo $(message "creating_session") $USERNAME@$BACKEND
+echo $(message creating_session) $USERNAME@$BACKEND
 # curl -D - $BACKEND/login 2> /dev/null > /dev/null
 rm -f ~/.iserv.$USERNAME
 DATA=$(curl -c ~/.iserv.$USERNAME -H "Content-type: application/x-www-form-urlencoded" -X POST -D - \

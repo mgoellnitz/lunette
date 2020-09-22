@@ -38,6 +38,7 @@ function usage {
    echo "  -s subject       subject given as a valid tag name (default $ISERV_TAG)"
    echo "  -a abb           teacher identification code as abbrevation (default $SCHOOL_TOKEN)"
    echo "  -l language      set ISO-639 language code for output messages (except this one)"
+   echo "  -k               use plain console version without dialogs"
    echo "  -u pattern       login of the user to read given exercise for"
    echo "     filename.txt  filename of the basic description file for a new exercise"
    echo ""
@@ -72,6 +73,10 @@ while [ "$PSTART" = "-" ] ; do
   fi
   if [ "$1" = "-f" ] ; then
     TYPE="files"
+  fi
+  if [ "$1" = "-k" ] ; then
+    GUI=
+    ZENITY=
   fi
   if [ "$1" = "-t" ] ; then
     TYPE="text"
@@ -127,7 +132,7 @@ fi
 EXERCISETITLE=$(basename "$FILENAME" .txt)
 
 if [ -z "$TEACHER" ] ; then
-  echo "$(message "no_token")"
+  echo "$(message no_token)"
   echo ""
   usage
 fi
@@ -135,14 +140,13 @@ TEACHERLOWER=$(echo $TEACHER|tr [:upper:] [:lower:])
 
 PROFILE=$(ls ~/.iserv.*${PATTERN}*|head -1)
 if [ -z "$PROFILE" ] ; then
-  echo "$(message "no_session")"
+  echo "$(message no_session)"
   echo ""
   if [ -z "$PATTERN" ] ; then
     if [ -z "$BACKEND" ] ; then
       exit 1
     else
-      echo -n "$(message "enter_username_for") $BACKEND: "
-      read PATTERN
+      PATTERN=$(text_input "iServ" "$(message enter_username_for) $BACKEND")
     fi
   fi
   if [ -z "$LANGUAGE" ] ; then
@@ -162,7 +166,7 @@ else
   curl -b ~/.iserv.$USERNAME $BACKEND/exercise/manage/exercise/add 2> /dev/null >$TMPFILE
   SESSIONCHECK=$(grep 'Redirecting.to.*.login' $TMPFILE)
   if [ ! -z "$SESSIONCHECK" ] ; then
-    echo "$(message "expired")"
+    echo "$(message expired)"
     if [ -z "$LANGUAGE" ] ; then
       $MYDIR/createsession.sh $USERNAME $BACKEND
     else
@@ -171,14 +175,14 @@ else
     curl -b ~/.iserv.$USERNAME $BACKEND/exercise/manage/exercise/add 2> /dev/null >$TMPFILE
   fi
 fi
-echo "$(message "creating_exercise_for") $USERNAME@$BACKEND"
+echo "$(message creating_exercise_for) $USERNAME@$BACKEND"
 if [ $(cat $TMPFILE|wc -l) -eq 0 ] ; then
   SESSIONCHECK="There is no result"
 else
   SESSIONCHECK=$(grep 'Redirecting.to.*.login' $TMPFILE)
 fi
 if [ ! -z "$SESSIONCHECK" ] ; then
-  echo "$(message "no_login")"
+  echo "$(message no_login)"
   rm -f $TMPFILE
   exit 1
 fi
@@ -186,11 +190,14 @@ fi
 grep option.va $TMPFILE |sed -e 's/.*"\(.*\)".*/\1/g'|grep $(date +%Y) > $GROUPLIST
 if [ -z "$PARTICIPANTUSER" ] && [ -z "$PARTICIPANTGROUP" ] ; then
   if [ -z "$ZENITY" ] ; then
-    echo "$(message "no_participant")"
+    echo "$(message no_participant)"
     echo ""
     usage
   else
-    FORM=$($ZENITY --entry --text="$(message "input_form")" --entry-text="$SCHOOL_FORM" --title="$(message "form_title")"|sed -e 's/\r//g')
+    FORM=$(text_input form_title input_form "$SCHOOL_FORM")
+    if [ -z "$FORM" ] ; then
+      exit
+    fi
     TITLEPREFIX="$FORM "
     FILTER="$FORM.*\.$(date +%Y)$"
     if [ $(grep "$FILTER" $GROUPLIST|wc -l) -ne 1 ] ; then
@@ -200,8 +207,8 @@ if [ -z "$PARTICIPANTUSER" ] && [ -z "$PARTICIPANTGROUP" ] ; then
         else
           FILTER="$FORM\.$(date +%Y)$"
         fi
-        PARTICIPANTGROUP=$($ZENITY --list --title "$(message "participants")" --text "$(message "select_group")" --column "$(message "group")" $(grep "$FILTER" $GROUPLIST)|sed -e 's/\r//g'|cut -d '|' -f 1)
-        # PARTICIPANTGROUP=$($ZENITY --entry --text="Gruppe (Namensausschnitt)" --entry-text="$FORM" --title="Teilnehmer"|sed -e 's/\r//g')
+        PARTICIPANTGROUP=$($ZENITY --list --title "$(message participants)" --text "$(message select_group)" --column "$(message group)" $(grep "$FILTER" $GROUPLIST)|sed -e 's/\r//g'|cut -d '|' -f 1)
+        # PARTICIPANTGROUP=$(text_input participants "Gruppe (Namensausschnitt)" "$FORM")
         # echo "$TEACHERLOWER: $PARTICIPANTGROUP|grep \\.$TEACHERLOWER\.."
       else
         PARTICIPANTGROUP=$(grep "$FILTER" $GROUPLIST|grep "\.$TEACHERLOWER\.$(date +%Y)$")
@@ -210,8 +217,8 @@ if [ -z "$PARTICIPANTUSER" ] && [ -z "$PARTICIPANTGROUP" ] ; then
       PARTICIPANTGROUP=$(grep "$FILTER" $GROUPLIST)
     fi
     echo Group: $PARTICIPANTGROUP
-    TAGNAME=$($ZENITY --entry --text="$(message "subject_tag")" --entry-text="$TAGNAME" --title="$(message "subject")"|sed -e 's/\r//g')
-    STARTDATE=$($ZENITY --calendar --title="$(message "startdate")" --date-format="%d.%m.%Y 9:00"|sed -e 's/\r//g')
+    TAGNAME=$(text_input subject subject_tag "$TAGNAME")
+    STARTDATE=$(select_date startdate 0 9)
     UNTIS_NEXT_LESSON=$(which next-lesson.sh)
     if [ -z "$UNTIS_NEXT_LESSON" ] ; then
       UNTIS_NEXT_LESSON="./next-lesson.sh"
@@ -220,19 +227,19 @@ if [ -z "$PARTICIPANTUSER" ] && [ -z "$PARTICIPANTGROUP" ] ; then
       fi
     fi
     if [ -x "$UNTIS_NEXT_LESSON" ] ; then
-      if $ZENITY --question --title="Untis" --text="$(message "ask_untis")" --no-wrap ; then
+      if $(question Untis ask_untis) ; then
         UNTIS="untis"
       fi
     fi
     if [ -z "$UNTIS" ] ; then
-      ENDDATE=$($ZENITY --calendar --title="$(message "enddate")" --year="$(date -d '+6 days 20' +%Y)" --month="$(date -d '+6 days 20' +%m|sed -e s/^0//g)" --day="$(date -d '+6 days 20' +%d)" --date-format="%d.%m.%Y 20:00"|sed -e 's/\r//g')
+      ENDDATE=$(select_date startdate 6 20)
     fi
     if [ -z "$FILENAME" ] ; then
-      FILENAME=$($ZENITY --file-selection --file-filter="Text|*.txt" --title="$(message "exercise_file")"|sed -e 's/\r//g'|sed -e 's/C:/\/mnt\/c\//g'|sed -e 's/\\/\//g')
+      FILENAME=$(select_file exercise_file)
       EXERCISETITLE=$(basename "$FILENAME" .txt)
     fi
-    EXERCISETITLE=$($ZENITY --entry --text="Titel (ohne Metadaten wie Datum, Lehrkraft, Fach, Stufe oder Klasse)" --entry-text="$EXERCISETITLE" --title="Aufgabentitel"|sed -e 's/\r//g')
-    XTYPE=$($ZENITY --list --title "Abgabeformat" --text "Was sollen als Ergebnis vorgelegt werden?" --column "Typ" Abhaken Text 'Datei(en)'|sed -e 's/\r//g')
+    EXERCISETITLE=$(text_input exercise_title "Titel (ohne Metadaten wie Datum, Lehrkraft, Fach, Stufe oder Klasse)" "$EXERCISETITLE")
+    XTYPE=$(list_select submission_format format_question submission_type "Abhaken Text Datei(en)")
     if [ "$XTYPE" = "Text" ] ; then
       TYPE="text"
     fi
@@ -245,24 +252,24 @@ if [ -z "$PARTICIPANTUSER" ] && [ -z "$PARTICIPANTGROUP" ] ; then
   fi
 fi
 if [ ! -f "$FILENAME" ] ; then
-  if [ -z "$ZENITY" ] ; then
-    echo "File \"$FILENAME\" not found."
+  if [ -z "$GUI" ] ; then
+    echo "$(message not_found): \"$FILENAME\""
     echo ""
     usage
   else
-    CONTENT=$($ZENITY --text-info  --title="$(message "new_exercise")"  --editable)
+    CONTENT=$(text_area new_exercise)
   fi
 else
-  if [ ! -z "$ZENITY" ] ; then
-    CONTENT=$($ZENITY --text-info  --title="$(message "modify_exercise")"  --editable  --filename="$(echo $FILENAME|sed -e 's/\/mnt\/\([a-z]\)\//\1:\//g')")
-  else
+  if [ -z "$GUI" ] ; then
     CONTENT="$(cat "$FILENAME")"
+  else
+    CONTENT=$(text_area modify_exercise "$(echo $FILENAME|sed -e 's/\/mnt\/\([a-z]\)\//\1:\//g')")
   fi
 fi
 
 AUTHCHECK=$(grep 'missing.*required.*authorization' $TMPFILE|wc -l)
 if [ "$AUTHCHECK" -gt 0 ] ; then
-  echo "You may not issue exercises on this system as user $USERNAME@$BACKEND."
+  text_info "iServ" "$(message no_permission) $USERNAME@$BACKEND."
   rm -f $TMPFILE
   exit 1
 fi
@@ -290,7 +297,7 @@ if [ ! -z "$PARTICIPANTGROUP" ] ; then
     if [ $(grep "$FILTER" $GROUPLIST|wc -l) -ne 1 ] ; then
       FILTER="$COURSELOWER.*$PARTICIPANTGROUP.*\.$(date +%Y)$"
       if [ $(grep "$FILTER" $GROUPLIST|wc -l) -ne 1 ] ; then
-        echo "Group specification does not refer to a single group. Please be more specific:"
+        echo "$(message ambigous_group)"
         echo ""
         grep "$FILTER" $GROUPLIST
         rm -f $TMPFILE $GROUPLIST
@@ -337,7 +344,7 @@ if [ ! -z "$UNTIS" ] ; then
       fi
     fi
   fi
-  # timetable can be fetch silently
+  # timetable can be fetched silently
   if [ ! -z "$UNTIS_URL" ] ; then
     $(dirname $UNTIS)/fetchtimetable.sh
   fi
@@ -402,9 +409,6 @@ if [ -z $ISSUE ] ; then
 fi
 
 if [ ! -z "$ISSUE" ] ; then
-  if [ -z "$ZENITY" ] ; then
-    echo "Issuing exercise."
-  fi
   EXERCISE="exercise[title]=$TITLE"
   EXERCISE="${EXERCISE}&exercise[startDate]=$STARTDATE"
   EXERCISE="${EXERCISE}&exercise[endDate]=$ENDDATE"
@@ -424,8 +428,6 @@ if [ ! -z "$ISSUE" ] ; then
   DATA=$(curl -b ~/.iserv.$USERNAME -H "Content-type: application/x-www-form-urlencoded" -X POST -D - \
               -d "$EXERCISE" $BACKEND/exercise/manage/exercise/add 2> /dev/null > /tmp/lunette.analyze|grep ^Location: /tmp/lunette.analyze |cut -d ' ' -f 2)
   # echo "System result URL: $DATA"
-  if [ ! -z "$ZENITY" ] ; then
-    $ZENITY --info --title="Einen schönen Arbeitstag noch..." --text="Sie haben die Aufgabe gestellt.\n\n(Gucken Sie ruhig im Browser noch einmal kurz in die Liste.)" --no-wrap
-  fi
+  $(text_info issued_title issued_text)
 fi
 rm -f $TMPFILE $GROUPLIST $USERLIST

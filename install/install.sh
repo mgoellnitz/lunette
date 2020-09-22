@@ -43,6 +43,15 @@ if [ -z "$MYDIR" ] ; then
 fi
 LIBDIR=$MYDIR/shared/lunette
 source $MYDIR/shared/lunette/lib.sh
+PSTART=`echo $1|sed -e 's/^\(.\).*/\1/g'`
+while [ "$PSTART" = "-" ] ; do
+  if [ "$1" = "-l" ] ; then
+    shift
+    export LANGUAGE=${1}
+  fi
+  shift
+  PSTART=`echo $1|sed -e 's/^\(.\).*/\1/g'`
+done
 if [ ! -z "$WINDOWS" ] && [ ! -f /usr/local/bin/zenity.exe ] ; then
   curl -Lo zenity.zip https://github.com/maravento/winzenity/raw/master/zenity.zip 2> /dev/null
   unzip zenity.zip
@@ -53,8 +62,4 @@ if [ ! -z "$(uname -v|grep Darwin)" ] ; then
   echo 'if [ -s ~/.bashrc ]; then source ~/.bashrc; fi' >> ~/.bash_profile
 fi
 lunette-setup.sh
-if [ -z "$ZENITY" ] ; then
-  echo "$(message "installation_completed")"
-else
-  $ZENITY --info --title="$(message "installation")" --text="$(message "installation_completed")" --no-wrap
-fi
+$(text_info installation installation_completed)

@@ -20,27 +20,16 @@ MYDIR=`dirname $0`
 LIBDIR=$MYDIR/../shared/lunette
 source $LIBDIR/lib.sh
 
-if [ -z "$ZENITY" ] ; then
-  echo -n "$(message "iserv_host"): "
-  read ISERV_BACKEND
-  echo -n "$(message "iserv_user"): "
-  read USERNAME
-  if [ ! -z "$(echo "$USERNAME"|grep "^[a-z]\.[a-z]")" ] ; then
-    echo -n "$(message "school_token"): "
-    read SCHOOL_TOKEN
-    echo -n "$(message "default_subject"):"
-    read ISERV_TAG
-  fi
-else  
-  ISERV_BACKEND=$($ZENITY --entry --text="$(message "iserv_host")" --entry-text="$(echo $ISERV_BACKEND|sed -e 's/^https:..\(.*\).iserv$/\1/g')" --title="iServ"|sed -e 's/\r//g')
-  USERNAME=$($ZENITY --entry --text="$(message "iserv_user")" --entry-text="$(ls ~/.iserv.*|head -1|sed -e 's/.*.iserv.\(.*\)$/\1/g')" --title="$ISERV_BACKEND"|sed -e 's/\r//g')
-  if [ ! -z "$(echo "$USERNAME"|grep "^[a-z]\.[a-z]")" ] ; then
-    SCHOOL_TOKEN=$($ZENITY --entry --text="$(message "school_token")" --entry-text="$SCHOOL_TOKEN" --title="$(message "school")"|sed -e 's/\r//g')
-    ISERV_TAG=$($ZENITY --entry --text="$(message "default_subject")" --entry-text="$ISERV_TAG" --title="$(message "subject_selection")"|sed -e 's/\r//g')
-  fi
+ISERV_BACKEND=$(text_input iServ iserv_host "$(echo $ISERV_BACKEND|sed -e 's/^https:..\(.*\).iserv$/\1/g')")
+USERNAME=$(text_input "$ISERV_BACKEND" iserv_user "$(ls ~/.iserv.*|head -1|sed -e 's/.*.iserv.\(.*\)$/\1/g')")
+if [ ! -z "$(echo "$USERNAME"|grep "^[a-z]\.[a-z]")" ] ; then
+  SCHOOL_TOKEN=$(text_input school school_token "$SCHOOL_TOKEN")
+  ISERV_TAG=$(text_input subject_selection default_subject "$ISERV_TAG")
 fi
 
 default "ISERV_BACKEND" "https://$ISERV_BACKEND/iserv"
 default "ISERV_TAG" "$ISERV_TAG"
 default "SCHOOL_TOKEN" "$SCHOOL_TOKEN"
-echo "# ISERV_BACKEND=https://$ISERV_BACKEND/iserv" > ~/.iserv.$USERNAME
+if [ ! -z "$USERNAME" ] ; then
+  echo "# ISERV_BACKEND=https://$ISERV_BACKEND/iserv" > ~/.iserv.$USERNAME
+fi
