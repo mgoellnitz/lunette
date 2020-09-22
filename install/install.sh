@@ -49,6 +49,9 @@ if [ ! -z "$WINDOWS" ] && [ ! -f /usr/local/bin/zenity.exe ] ; then
   sudo mv zenity.exe /usr/local/bin
   rm zenity.zip
 fi
+if [ ! -z "$(uname -v|grep Darwin)" ] ; then
+  echo 'if [ -s ~/.bashrc ]; then source ~/.bashrc; fi' >> ~/.bash_profile
+fi
 lunette-setup.sh
 if [ -z "$ZENITY" ] ; then
   echo "$(message "installation_completed")"
