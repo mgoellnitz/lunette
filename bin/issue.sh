@@ -254,7 +254,7 @@ if [ ! -f "$FILENAME" ] ; then
   fi
 else
   if [ ! -z "$ZENITY" ] ; then
-    CONTENT=$($ZENITY --text-info  --title="$(message "modify_exercise")"  --editable  --filename="$FILENAME")
+    CONTENT=$($ZENITY --text-info  --title="$(message "modify_exercise")"  --editable  --filename="$(echo $FILENAME|sed -e 's/\/mnt\/\([a-z]\)\//\1:\//g')")
   else
     CONTENT="$(cat "$FILENAME")"
   fi
