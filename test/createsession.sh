@@ -32,18 +32,18 @@ OUTPUT=$($CWD/bin/createsession.sh|head -1)
 # echo "$OUTPUT"
 assertEquals "Unexpected session creation output" "$OUTPUT" "Usage: createsession.sh username [backend]"
 
-OUTPUT=$($CWD/bin/createsession.sh rainer.hohn|tail -1)
+OUTPUT=$($CWD/bin/createsession.sh -l en rainer.hohn|tail -1)
 # echo "$OUTPUT"
-assertEquals "Unexpected session creation output" "$OUTPUT" "Error: IServ Backend must be given as a second parameter or by environment variable ISERV_BACKEND."
+assertEquals "Unexpected session creation output" "$OUTPUT" 'Error: IServ Backend must be given as a second parameter or by environment variable $ISERV_BACKEND.'
 
-OUTPUT=$($CWD/bin/createsession.sh rainer.hohn https://avh.hamburg/iserv|tail -1)
+OUTPUT=$($CWD/bin/createsession.sh -l en rainer.hohn https://avh.hamburg/iserv|tail -1)
 # echo "$OUTPUT"
-assertEquals "5 Unexpected session creation output" "$OUTPUT" "Creating session for rainer.hohn@https://avh.hamburg/iserv"
+assertEquals "5 Unexpected session creation output" "$OUTPUT" "Password for rainer.hohn@https://avh.hamburg/iserv: Creating session for rainer.hohn@https://avh.hamburg/iserv"
 
 export ISERV_BACKEND=https://avh.hamburg/iserv
-OUTPUT=$($CWD/bin/createsession.sh rainer.hohn|tail -1)
+OUTPUT=$($CWD/bin/createsession.sh -l en rainer.hohn|tail -1)
 # echo "$OUTPUT"
-assertEquals "Unexpected session creation output" "$OUTPUT" "Creating session for rainer.hohn@https://avh.hamburg/iserv"
+assertEquals "Unexpected session creation output" "$OUTPUT" "Password for rainer.hohn@https://avh.hamburg/iserv: Creating session for rainer.hohn@https://avh.hamburg/iserv"
 
 # cleanup test
 after

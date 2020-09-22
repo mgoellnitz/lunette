@@ -27,9 +27,11 @@ fi
 
 # localized message translation $1 is a message key
 function message {
-  LANGUAGE=$(echo $LANG|cut -d '_' -f 1)
   if [ -z "$LANGUAGE" ] ; then
-    LANGUAGE="de"
+    LANGUAGE=$(echo $LANG|cut -d '_' -f 1)
+    if [ -z "$LANGUAGE" ] ; then
+      LANGUAGE="de"
+    fi
   fi
   FILENAME=$LIBDIR/messages_$LANGUAGE.txt
   if [ ! -f "$FILENAME" ] ; then

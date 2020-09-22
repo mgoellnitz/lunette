@@ -16,47 +16,53 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 MYNAME=`basename $0`
-
-USERNAME=${1}
-BACKEND=${2:-$ISERV_BACKEND}
+MYDIR=`dirname $0`
+LIBDIR=$MYDIR/../shared/lunette
+source $LIBDIR/lib.sh
 
 function usage {
    echo "Usage: $MYNAME username [backend]"
    echo ""
-   echo "  username login of the user without domain name and the like"
-   echo "  backend  backend in the form of a base URL including a trailing /iserv"
+   echo "  -l language  set ISO-639 language code for output messages (except this one)"
+   echo "     username  login of the user without domain name and the like"
+   echo "     backend   backend in the form of a base URL including a trailing /iserv"
    echo ""
    exit
 }
+
+PSTART=`echo $1|sed -e 's/^\(.\).*/\1/g'`
+while [ "$PSTART" = "-" ] ; do
+  if [ "$1" = "-h" ] ; then
+    usage
+    exit
+  fi
+  if [ "$1" = "-l" ] ; then
+    shift
+    LANGUAGE=${1}
+  fi
+  shift
+  PSTART=`echo $1|sed -e 's/^\(.\).*/\1/g'`
+done
+USERNAME=${1}
+BACKEND=${2:-$ISERV_BACKEND}
 
 if [ -z "$USERNAME" ] ; then
   usage
 fi
 
 if [ -z "$BACKEND" ] ; then
-   echo "Error: IServ Backend must be given as a second parameter or by environment variable ISERV_BACKEND."
+   echo "$(message "no_backend")"
    exit
 fi
 
-WINDOWS=$(uname -a|grep Microsoft)
-if [ ! -z "$WINDOWS" ] ; then
-  ZENITY=zenity.exe
-else
-  ZENITY=zenity
-fi
-if [ -z $(which zenity) ] ; then
-  ZENITY=
-fi
-
 if [ -z "$ZENITY" ] ; then
-  echo -n "Password for $USERNAME@$BACKEND: "
+  echo -n "$(message "password_for") $USERNAME@$BACKEND: "
   read -s PASSWORD
 else
-  PASSWORD=$($ZENITY --entry --text="Kennwort für $USERNAME" --entry-text="$PASSWORD" --hide-text --title="iServ - $BACKEND"|sed -e 's/\r//g')
+  PASSWORD=$($ZENITY --entry --text="$(message "password_for") $USERNAME@$BACKEND" --entry-text="$PASSWORD" --hide-text --title="iServ - $BACKEND"|sed -e 's/\r//g')
 fi
 
-echo ""
-echo Creating session for $USERNAME@$BACKEND
+echo $(message "creating_session") $USERNAME@$BACKEND
 # curl -D - $BACKEND/login 2> /dev/null > /dev/null
 rm -f ~/.iserv.$USERNAME
 DATA=$(curl -c ~/.iserv.$USERNAME -H "Content-type: application/x-www-form-urlencoded" -X POST -D - \
