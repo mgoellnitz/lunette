@@ -249,7 +249,7 @@ else
   if [ ! -z "$ZENITY" ] ; then
     CONTENT=$($ZENITY --text-info  --title="$(message "modify_exercise")"  --editable  --filename="$FILENAME")
   else
-    CONTENT="(cat "$FILENAME")
+    CONTENT="$(cat "$FILENAME")"
   fi
 fi
 

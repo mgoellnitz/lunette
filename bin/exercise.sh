@@ -102,7 +102,7 @@ TITLE=$(cat $TMPFILE|grep '<title>'|sed -e 's/<title>//g'|sed -e 's/.-.Aufgaben.
 STARTDATE=$(cat $TMPFILE|grep -A1 Starttermin|tail -1|sed -e 's/<td>//g'|sed -e 's/<.td>//g')
 ENDDATE=$(cat $TMPFILE|grep -A1 Abgabetermin|tail -1|sed -e 's/<td>//g'|sed -e 's/<.td>//g')
 
-LINE_COUNT=$(wc -l $TMPFILE|cut -d ' ' -f 1)
+LINE_COUNT=$(wc -l $TMPFILE|sed -e 's/^\ *//g'|cut -d ' ' -f 1)
 
 DESC_START_LINE=$(cat $TMPFILE|grep -n Beschreibung|cut -d ':' -f 1)
 if [ -z "$DESC_START_LINE" ] ; then
