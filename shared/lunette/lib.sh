@@ -55,47 +55,65 @@ function message {
 
 # $1 title $2 text
 function text_info {
-  if [ -z "$ZENITY" ] ; then
-    echo "$(message "$2")"
+  if [ -x "$(which osascript)" ] ; then
+    osascript -e 'display dialog "'"$(message "$2")"'" with icon note buttons {"Ok"} default button "Ok"'|sed -e 's/button.returned:Ok//g'
   else
-    $ZENITY --info --title="$(message "$1")" --text="$(message "$2")" --no-wrap
+    if [ -z "$ZENITY" ] ; then
+      echo "$(message "$2")"
+    else
+      $ZENITY --info --title="$(message "$1")" --text="$(message "$2")" --no-wrap
+    fi
   fi
 }
 
 # $1 title $2 text $3 default
 function text_input {
-  if [ -z "$ZENITY" ] ; then
-    echo -n "$(message "$2"): " 1>&2 
-    read RESULT
+  if [ -x "$(which osascript)" ] ; then
+    RESULT=$(osascript -e 'display dialog "'"$(message "$2")"'" default answer "'"$3"'" with icon note buttons {"Ok"} default button "Ok"'|sed -e 's/^.*text.returned:\(.*\)$/\1/g')
   else
-    RESULT=$($ZENITY --entry --title="$(message "$1")" --text="$(message "$2")" --entry-text="$3"|sed -e 's/\r//g')
+    if [ -z "$ZENITY" ] ; then
+      echo -n "$(message "$2"): " 1>&2
+      read RESULT
+    else
+      RESULT=$($ZENITY --entry --title="$(message "$1")" --text="$(message "$2")" --entry-text="$3"|sed -e 's/\r//g')
+    fi
   fi
   echo "$RESULT"
 }
 
 # $1 title $2 text $3 default
 function password_input {
-  if [ -z "$ZENITY" ] ; then
-    echo -n "$(message "$2"): " 1>&2 
-    read -s RESULT
+  if [ -x "$(which osascript)" ] ; then
+    RESULT=$(osascript -e 'display dialog "'"$(message "$2")"'" default answer "'"$3"'" with icon note buttons {"Ok"} default button "Ok" with hidden answer'|sed -e 's/^.*text.returned:\(.*\)$/\1/g')
   else
-    RESULT=$($ZENITY --entry --title="$(message "$1")" --text="$(message "$2")" --entry-text="$3" --hide-text|sed -e 's/\r//g')
+    if [ -z "$ZENITY" ] ; then
+      echo -n "$(message "$2"): " 1>&2
+      read -s RESULT
+    else
+      RESULT=$($ZENITY --entry --title="$(message "$1")" --text="$(message "$2")" --entry-text="$3" --hide-text|sed -e 's/\r//g')
+    fi
   fi
   echo "$RESULT"
 }
 
 # select one element from list given by $4 with title $1, text $2, and column $3 - no none GUI version available
 function list_select {
-  # choose from list {"$TRANSFORMED_LIST"} with prompt "'"$(message "$2")"'" default items {"Apple"}
-  RESULT=$($ZENITY --list --title "$(message "$1")" --text "$(message "$2")" --column "$(message "$3")" $4|sed -e 's/\r//g'|cut -d '|' -f 1)
+  if [ -x "$(which osascript)" ] ; then
+    RESULT=$(osascript -e 'choose from list {"'$(echo "$4"|sed -e 's/ /","/g')'"} with prompt "'"$(message "$2")"'"'|sed -e 's/^.*text.returned:\(.*\)$/\1/g')
+  else
+    RESULT=$($ZENITY --list --title "$(message "$1")" --text "$(message "$2")" --column "$(message "$3")" $4|sed -e 's/\r//g'|cut -d '|' -f 1)
+  fi
   echo "$RESULT"
 }
 
 # select file with title $1 - no none GUI version available
 function select_file {
-  # choose file with prompt "Please select an exercise file:"
-  #   --> Result: alias "HD:Users:name:Documents:exercise.txt"
-  $ZENITY --file-selection --file-filter="Text|*.txt" --title="$(message "$1")"|sed -e 's/\r//g'|sed -e 's/C:/\/mnt\/c\//g'|sed -e 's/\\/\//g'
+  if [ -x "$(which osascript)" ] ; then
+    RESULT="/$(osascript -e 'choose file with prompt "'"$1"'"' 2> /dev/null|cut -d ':' -f 2-50|sed -e 's/:/\//g')"
+  else
+    RESULT=$($ZENITY --file-selection --file-filter="Text|*.txt" --title="$(message "$1")"|sed -e 's/\r//g'|sed -e 's/C:/\/mnt\/c\//g'|sed -e 's/\\/\//g')
+  fi
+  echo "$RESULT"
 }
 
 # title $1, dayoffset $2, hour $3 - no none GUI version available
@@ -109,20 +127,37 @@ function select_date {
     MONTH=$(date -jf "%s" $[ $(date "+%s") + (86400*$2) ] "+%m"|sed -e s/^0//g)
     YEAR=$(date -jf "%s" $[ $(date "+%s") + (86400*$2) ] "+%Y"|sed -e s/^0//g)
   fi
-  $ZENITY --calendar --title="$(message "$1")" --year="$YEAR" --month="$MONTH" --day="$DAY" --date-format="%d.%m.%Y $3:00"|sed -e 's/\r//g'
+  if [ -x "$(which osascript)" ] ; then
+    text_input "$1" "$1" "$DAY.$MONTH.$YEAR $3:00"
+  else
+    $ZENITY --calendar --title="$(message "$1")" --year="$YEAR" --month="$MONTH" --day="$DAY" --date-format="%d.%m.%Y $3:00"|sed -e 's/\r//g'
+  fi
 }
 
 # title $1, text $2 - no none GUI version available
 function question {
-  $ZENITY --question --title="$(message "$1")" --text="$(message "$2")" --no-wrap
+  if [ -x "$(which osascript)" ] ; then
+    osascript -e 'display dialog "'"$(message "$2")"'" with icon caution buttons {"Yes","No"} default button "Yes"'|grep "returned:Yes"|sed -e 's/button.returned.Yes/true/g'
+  else
+    $ZENITY --question --title="$(message "$1")" --text="$(message "$2")" --no-wrap
+  fi
 }
 
 # title $1, contents filename $2 - no none GUI version available
 function text_area {
-  if [ -z "$2" ] ; then
-    $ZENITY --text-info --title="$(message "$1")" --editable
+  if [ -x "$(which osascript)" ] ; then
+    if [ -z "$2" ] ; then
+      osascript -e 'display dialog "'"$(message "$1")"'" default answer linefeed buttons {"Ok"} default button "Ok"'|sed -e 's/^.*text.returned:\(.*\)$/\1/g'
+    else
+      DEFAULT=$(cat "$2")
+      osascript -e 'display dialog "'"$(message "$1")"'" default answer "'"$DEFAULT"'" buttons {"Ok"} default button "Ok"'|sed -e 's/^.*text.returned:\(.*\)$/\1/g'
+    fi
   else
-    $ZENITY --text-info --title="$(message "$1")" --editable --filename="$2"
+    if [ -z "$2" ] ; then
+      $ZENITY --text-info --title="$(message "$1")" --editable
+    else
+      $ZENITY --text-info --title="$(message "$1")" --editable --filename="$2"
+    fi
   fi
 }
 

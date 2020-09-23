@@ -189,7 +189,7 @@ fi
 
 grep option.va $TMPFILE |sed -e 's/.*"\(.*\)".*/\1/g'|grep $(date +%Y) > $GROUPLIST
 if [ -z "$PARTICIPANTUSER" ] && [ -z "$PARTICIPANTGROUP" ] ; then
-  if [ -z "$ZENITY" ] ; then
+  if [ -z "$GUI" ] ; then
     echo "$(message no_participant)"
     echo ""
     usage
@@ -207,7 +207,7 @@ if [ -z "$PARTICIPANTUSER" ] && [ -z "$PARTICIPANTGROUP" ] ; then
         else
           FILTER="$FORM\.$(date +%Y)$"
         fi
-        PARTICIPANTGROUP=$($ZENITY --list --title "$(message participants)" --text "$(message select_group)" --column "$(message group)" $(grep "$FILTER" $GROUPLIST)|sed -e 's/\r//g'|cut -d '|' -f 1)
+        PARTICIPANTGROUP=$(list_select participants select_group group "$(grep "$FILTER" $GROUPLIST)")
         # PARTICIPANTGROUP=$(text_input participants "Gruppe (Namensausschnitt)" "$FORM")
         # echo "$TEACHERLOWER: $PARTICIPANTGROUP|grep \\.$TEACHERLOWER\.."
       else
@@ -232,7 +232,7 @@ if [ -z "$PARTICIPANTUSER" ] && [ -z "$PARTICIPANTGROUP" ] ; then
       fi
     fi
     if [ -z "$UNTIS" ] ; then
-      ENDDATE=$(select_date startdate 6 20)
+      ENDDATE=$(select_date enddate 6 20)
     fi
     if [ -z "$FILENAME" ] ; then
       FILENAME=$(select_file exercise_file)
@@ -374,7 +374,7 @@ fi
 TOKEN=$(grep -A1 exercise__token $TMPFILE |grep value|sed -e 's/.*value="\([0-9a-zA-Z_\-]*\).*/\1/g')
 TITLE="$COURSE $TITLEPREFIX$TEACHER - $EXERCISETITLE"
 
-if [ -z "$ZENITY" ] ; then
+if [ -z "$GUI" ] ; then
   echo "$TITLE: ($TYPE) [$TOKEN]"
   echo "$STARTDATE - $ENDDATE - $TAGNAME ($TAGS)"
   echo ""
@@ -384,7 +384,7 @@ if [ -z "$ZENITY" ] ; then
 fi
 
 if [ -z $ISSUE ] ; then
-  if [ -z "$ZENITY" ] ; then
+  if [ -z "$GUI" ] ; then
     echo ""
     echo -n "Issue exercise this way? (j/n [Return])"
     read -s ISSUE
@@ -402,7 +402,7 @@ if [ -z $ISSUE ] ; then
     if [ "$TYPE" = "confirmation" ] ; then
       XTYPE="Bestätigung"
     fi
-    if $ZENITY --question --title="$TITLE ($TAGNAME)" --text="Zur Abgabe $ENDDATE als \"$XTYPE\" (Start: $STARTDATE)\n\nTeilnehmer: $PARTICIPANTGROUP $PARTICIPANTUSER\n\n$CONTENT\n\nMöchten Sie die Aufgabe so stellen?" --no-wrap ; then
+    if $(question "$TITLE ($TAGNAME)" "Zur Abgabe $ENDDATE als \"$XTYPE\" (Start: $STARTDATE)\n\nTeilnehmer: $PARTICIPANTGROUP $PARTICIPANTUSER\n\n$CONTENT\n\nMöchten Sie die Aufgabe so stellen?") ; then
       ISSUE="j"
     fi
   fi
