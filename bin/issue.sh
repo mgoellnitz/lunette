@@ -238,12 +238,12 @@ if [ -z "$PARTICIPANTUSER" ] && [ -z "$PARTICIPANTGROUP" ] ; then
       FILENAME=$(select_file exercise_file)
       EXERCISETITLE=$(basename "$FILENAME" .txt)
     fi
-    EXERCISETITLE=$(text_input exercise_title "Titel (ohne Metadaten wie Datum, Lehrkraft, Fach, Stufe oder Klasse)" "$EXERCISETITLE")
-    XTYPE=$(list_select submission_format format_question submission_type "Abhaken Text Datei(en)")
-    if [ "$XTYPE" = "Text" ] ; then
+    EXERCISETITLE=$(text_input exercise_title exercise_hint "$EXERCISETITLE")
+    XTYPE=$(list_select submission_format format_question submission_type "$(message type_confirmation) $(message type_text) $(message type_files)")
+    if [ "$XTYPE" = "$(message type_text)" ] ; then
       TYPE="text"
     fi
-    if [ "$XTYPE" = "Datei(en)" ] ; then
+    if [ "$XTYPE" = "$(message type_files)" ] ; then
       TYPE="files"
     fi
     # GROUPANDUSER=$($ZENITY --forms --title="Aufgabendatei" --add-entry="Teilnehmergruppe" --add-entry="Einzelteilnehmer")
