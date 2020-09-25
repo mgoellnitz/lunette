@@ -188,6 +188,9 @@ if [ ! -z "$SESSIONCHECK" ] ; then
 fi
 
 grep option.va $TMPFILE |sed -e 's/.*"\(.*\)".*/\1/g'|grep $(date +%Y) > $GROUPLIST
+if [ $(cat $GROUPLIST|wc -l) -eq 0 ] ; then
+  curl -b ~/.iserv.$USERNAME $BACKEND/profile/groups 2> /dev/null|grep option.value=|grep $(date +%Y)|sed -e 's/^.*option.value="\(.*\)"/\1/g' > $GROUPLIST
+fi
 if [ -z "$PARTICIPANTUSER" ] && [ -z "$PARTICIPANTGROUP" ] ; then
   if [ -z "$GUI" ] ; then
     echo "$(message no_participant)"
