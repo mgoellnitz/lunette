@@ -42,8 +42,8 @@ distributions {
       into ('bin') {
         from 'bin'
       }
-      into ('shared') {
-        from 'shared'
+      into ('share') {
+        from 'share'
       }
       into ('windows') {
         from 'windows'

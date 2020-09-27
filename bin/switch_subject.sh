@@ -19,7 +19,7 @@ TMPFILE="/tmp/lunette.html"
 
 MYNAME=`basename $0`
 MYDIR=`dirname $0`
-LIBDIR=$MYDIR/../shared/lunette
+LIBDIR=$MYDIR/../share/lunette
 source $LIBDIR/lib.sh
 
 PSTART=`echo $1|sed -e 's/^\(.\).*/\1/g'`

@@ -17,7 +17,7 @@
 #
 MYNAME=`basename $0`
 MYDIR=`dirname $0`
-LIBDIR=$MYDIR/../shared/lunette
+LIBDIR=$MYDIR/../share/lunette
 source $LIBDIR/lib.sh
 
 function usage {

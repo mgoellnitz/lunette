@@ -17,7 +17,7 @@
 #
 MYNAME=`basename $0`
 MYDIR=`dirname $0`
-LIBDIR=$MYDIR/../shared/lunette
+LIBDIR=$MYDIR/../share/lunette
 source $LIBDIR/lib.sh
 TMPFILE="/tmp/lunette.html"
 GROUPLIST="/tmp/lunette.groups"
@@ -280,7 +280,7 @@ for SEARCH_TERM in $(echo "$CONTENT"|grep ^file: |sed -e 's/^file://g') ; do
   PARAMETERS="${PARAMETERS}&search[_token]=$SEARCH_TOKEN"
   RESULT=$(curl -b ~/.iserv.$USERNAME -H "Content-type: application/x-www-form-urlencoded" -X POST -d "$PARAMETERS" $BACKEND/file_search 2> /dev/null)
   # echo "$RESULT"
-  if [ $(echo $RESULT|jq .status) != "\"error\"" ] ; then
+  if [ "$(echo $RESULT|jq .status)" != "\"error\"" ] ; then
     REPLACEMENT=$(echo "$BACKEND$(echo $RESULT|jq '.data[]|select(.type.id == "File")|.name.link'|sed -e 's/.iserv//g'|sed -e 's/"//g')"|sed -e 's/\//\\\//g')
     # echo "$REPLACEMENT"
     CONTENT=$(echo "$CONTENT"|sed -e "s/file:$SEARCH_TERM/$REPLACEMENT/g")

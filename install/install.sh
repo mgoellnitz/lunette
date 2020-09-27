@@ -17,10 +17,12 @@
 #
 if [ ! -z "$(uname -v|grep Darwin)" ] ; then
   if [ -z "$(which jq)" ] ; then
-    if [ -z "$(which brew)" ] ; then
-      bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+    # if [ -z "$(which brew)" ] ; then
+    #   bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+    # fi
+    if [ ! -z "$(which brew)" ] ; then
+      brew install jq
     fi
-    brew install jq
   fi
 fi
 CHECK=$((which curl;which unzip;which jq;which zenity)|wc -l)
@@ -44,13 +46,13 @@ if [ -z "$(uname -v|grep Darwin)" ] ; then
     cp linux/Lunette.desktop ~/Desktop
   fi
 fi
-sudo cp -r shared/* /usr/local/shared
+sudo cp -r share/* /usr/local/share
 MYDIR=$(dirname $BASH_SOURCE)|sed -e 's/install\///g'|sed -e 's/^.bin/\./g'
 if [ -z "$MYDIR" ] ; then
   MYDIR="."
 fi
-LIBDIR=$MYDIR/shared/lunette
-source $MYDIR/shared/lunette/lib.sh
+LIBDIR=$MYDIR/share/lunette
+source $MYDIR/share/lunette/lib.sh
 PSTART=`echo $1|sed -e 's/^\(.\).*/\1/g'`
 while [ "$PSTART" = "-" ] ; do
   if [ "$1" = "-l" ] ; then
