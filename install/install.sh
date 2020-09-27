@@ -15,14 +15,22 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
-CHECK=$((which curl;which unzip;which zenity)|wc -l)
-if [ "$CHECK" -lt 3 ] ; then
+if [ ! -z "$(uname -v|grep Darwin)" ] ; then
+  if [ -z "$(which jq)" ] ; then
+    if [ -z "$(which brew)" ] ; then
+      bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+    fi
+    brew install jq
+  fi
+fi
+CHECK=$((which curl;which unzip;which jq;which zenity)|wc -l)
+if [ "$CHECK" -lt 4 ] ; then
   if [ "$(which apt|wc -l)" -eq 1 ] && [ -z "$(uname -v|grep Darwin)" ] ; then
     sudo apt update
-    sudo apt install -yq curl unzip zenity
+    sudo apt install -yq curl unzip jq zenity
   else
-    if [ "$((which curl;which unzip)|wc -l)" -lt 2 ] ; then
-      echo 'Please ensure that unzip and curl are available from the $PATH'
+    if [ "$((which curl;which unzip;which jq)|wc -l)" -lt 3 ] ; then
+      echo 'Please ensure that jq, unzip and curl are available from the $PATH - zenity is optional.'
     fi
   fi
 fi

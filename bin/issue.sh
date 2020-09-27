@@ -22,6 +22,13 @@ source $LIBDIR/lib.sh
 TMPFILE="/tmp/lunette.html"
 GROUPLIST="/tmp/lunette.groups"
 USERLIST="/tmp/lunette.users"
+UNTIS_NEXT_LESSON=$(which next-lesson.sh)
+if [ -z "$UNTIS_NEXT_LESSON" ] ; then
+  UNTIS_NEXT_LESSON="./next-lesson.sh"
+  if [ ! -x "$UNTIS_NEXT_LESSON" ] ; then
+    UNTIS_NEXT_LESSON="$MYDIR/../../proposito-unitis/bin/next-lesson.sh"
+  fi
+fi
 
 function usage {
    echo "Usage: $MYNAME [-c] [-t] [-f] [-b begin] [-e end] [-g group] [-p user] [-m form] [-s subject] [-a abb] [-u username] filename.txt"
@@ -82,7 +89,9 @@ while [ "$PSTART" = "-" ] ; do
     TYPE="text"
   fi
   if [ "$1" = "-w" ] ; then
-    UNTIS="untis"
+    if [ -x "$UNTIS_NEXT_LESSON" ] ; then
+      UNTIS="untis"
+    fi
   fi
   if [ "$1" = "-a" ] ; then
     shift
@@ -131,7 +140,7 @@ if [ "$FILENAME" = "=/" ] ; then
 fi
 EXERCISETITLE=$(basename "$FILENAME" .txt)
 if [ -z "$TEACHER" ] ; then
-  echo "$(message no_token)"
+  message no_token
   echo ""
   usage
 fi
@@ -139,13 +148,13 @@ TEACHERLOWER=$(echo $TEACHER|tr [:upper:] [:lower:])
 
 PROFILE=$(ls ~/.iserv.*${PATTERN}*|head -1)
 if [ -z "$PROFILE" ] ; then
-  echo "$(message no_session)"
+  message no_session
   echo ""
   if [ -z "$PATTERN" ] ; then
     if [ -z "$BACKEND" ] ; then
       exit 1
     else
-      PATTERN=$(text_input "iServ" "$(message enter_username_for) $BACKEND")
+      PATTERN=$(text_input iServ enter_username_for "$BACKEND")
     fi
   fi
   if [ -z "$LANGUAGE" ] ; then
@@ -165,7 +174,7 @@ else
   curl -b ~/.iserv.$USERNAME $BACKEND/exercise/manage/exercise/add 2> /dev/null >$TMPFILE
   SESSIONCHECK=$(grep 'Redirecting.to.*.login' $TMPFILE)
   if [ ! -z "$SESSIONCHECK" ] ; then
-    echo "$(message expired)"
+    message expired
     if [ -z "$LANGUAGE" ] ; then
       $MYDIR/createsession.sh $USERNAME $BACKEND
     else
@@ -174,14 +183,14 @@ else
     curl -b ~/.iserv.$USERNAME $BACKEND/exercise/manage/exercise/add 2> /dev/null >$TMPFILE
   fi
 fi
-echo "$(message creating_exercise_for) $USERNAME@$BACKEND"
+message creating_exercise_for $USERNAME $BACKEND
 if [ $(cat $TMPFILE|wc -l) -eq 0 ] ; then
   SESSIONCHECK="There is no result"
 else
   SESSIONCHECK=$(grep 'Redirecting.to.*.login' $TMPFILE)
 fi
 if [ ! -z "$SESSIONCHECK" ] ; then
-  echo "$(message no_login)"
+  message no_login
   rm -f $TMPFILE
   exit 1
 fi
@@ -192,7 +201,7 @@ if [ $(cat $GROUPLIST|wc -l) -eq 0 ] ; then
 fi
 if [ -z "$PARTICIPANTUSER" ] && [ -z "$PARTICIPANTGROUP" ] ; then
   if [ -z "$GUI" ] ; then
-    echo "$(message no_participant)"
+    message no_participant
     echo ""
     usage
   else
@@ -209,7 +218,7 @@ if [ -z "$PARTICIPANTUSER" ] && [ -z "$PARTICIPANTGROUP" ] ; then
         else
           FILTER="$FORM\.$(date +%Y)$"
         fi
-        PARTICIPANTGROUP=$(list_select participants select_group group "$(grep "$FILTER" $GROUPLIST)")
+        PARTICIPANTGROUP=$(list_select participants select_group group $(grep "$FILTER" $GROUPLIST))
         # PARTICIPANTGROUP=$(text_input participants "Gruppe (Namensausschnitt)" "$FORM")
         # echo "$TEACHERLOWER: $PARTICIPANTGROUP|grep \\.$TEACHERLOWER\.."
       else
@@ -218,16 +227,9 @@ if [ -z "$PARTICIPANTUSER" ] && [ -z "$PARTICIPANTGROUP" ] ; then
     else
       PARTICIPANTGROUP=$(grep "$FILTER" $GROUPLIST)
     fi
-    echo Group: $PARTICIPANTGROUP
+    # echo Group: $PARTICIPANTGROUP
     TAGNAME=$(text_input subject subject_tag "$TAGNAME")
     STARTDATE=$(select_date startdate 0 9)
-    UNTIS_NEXT_LESSON=$(which next-lesson.sh)
-    if [ -z "$UNTIS_NEXT_LESSON" ] ; then
-      UNTIS_NEXT_LESSON="./next-lesson.sh"
-      if [ ! -x "$UNTIS_NEXT_LESSON" ] ; then
-        UNTIS_NEXT_LESSON="$MYDIR/../../proposito-unitis/bin/next-lesson.sh"
-      fi
-    fi
     if [ -x "$UNTIS_NEXT_LESSON" ] ; then
       if $(question Untis ask_untis) ; then
         UNTIS="untis"
@@ -241,7 +243,7 @@ if [ -z "$PARTICIPANTUSER" ] && [ -z "$PARTICIPANTGROUP" ] ; then
       EXERCISETITLE=$(basename "$FILENAME" .txt)
     fi
     EXERCISETITLE=$(text_input exercise_title exercise_hint "$EXERCISETITLE")
-    XTYPE=$(list_select submission_format format_question submission_type "$(message type_confirmation) $(message type_text) $(message type_files)")
+    XTYPE=$(list_select submission_format format_question submission_type $(message type_confirmation) $(message type_text) $(message type_files))
     if [ "$XTYPE" = "$(message type_text)" ] ; then
       TYPE="text"
     fi
@@ -255,7 +257,7 @@ if [ -z "$PARTICIPANTUSER" ] && [ -z "$PARTICIPANTGROUP" ] ; then
 fi
 if [ ! -f "$FILENAME" ] ; then
   if [ -z "$GUI" ] ; then
-    echo "$(message not_found): \"$FILENAME\""
+    message not_found "$FILENAME"
     echo ""
     usage
   else
@@ -285,11 +287,9 @@ for SEARCH_TERM in $(echo "$CONTENT"|grep ^file: |sed -e 's/^file://g') ; do
   fi
 done
 
-echo -e "$CONTENT"
-
 AUTHCHECK=$(grep 'missing.*required.*authorization' $TMPFILE|wc -l)
 if [ "$AUTHCHECK" -gt 0 ] ; then
-  text_info "iServ" "$(message no_permission) $USERNAME@$BACKEND."
+  text_info iServ no_permission "$USERNAME" "$BACKEND"
   rm -f $TMPFILE
   exit 1
 fi
@@ -317,7 +317,7 @@ if [ ! -z "$PARTICIPANTGROUP" ] ; then
     if [ $(grep "$FILTER" $GROUPLIST|wc -l) -ne 1 ] ; then
       FILTER="$COURSELOWER.*$PARTICIPANTGROUP.*\.$(date +%Y)$"
       if [ $(grep "$FILTER" $GROUPLIST|wc -l) -ne 1 ] ; then
-        echo "$(message ambigous_group)"
+        message ambigous_group
         echo ""
         grep "$FILTER" $GROUPLIST
         rm -f $TMPFILE $GROUPLIST
@@ -325,7 +325,7 @@ if [ ! -z "$PARTICIPANTGROUP" ] ; then
       else
         TEACHERLOWER=$(echo $TEACHER|tr [:upper:] [:lower:])
         if [ $(grep "$FILTER" $GROUPLIST|grep \\.$TEACHERLOWER\..|wc -l) -eq 0 ] ; then
-          echo "Group specification does not refer to a single group. Please be more specific:"
+          message ambigous_group
           echo ""
           grep "$PARTICIPANTGROUP.*\.$(date +%Y)$" $GROUPLIST
           rm -f $TMPFILE $GROUPLIST
@@ -342,7 +342,7 @@ fi
 if [ ! -z "$PARTICIPANTUSER" ] ; then
   grep option.va $TMPFILE |sed -e 's/.*"\(.*\)".*/\1/g'|grep -v "20[0-9][0-9]"|grep \\.|sort|uniq > $USERLIST
   if [ $(grep "$PARTICIPANTUSER" $USERLIST|wc -l) -ne 1 ] ; then
-    echo "Person specification does not refer to a single registered user. Please be more specific:"
+    message ambigous_person
     echo ""
     grep "$PARTICIPANTUSER" $USERLIST
     rm -f $TMPFILE $GROUPLIST $USERLIST
@@ -352,24 +352,13 @@ if [ ! -z "$PARTICIPANTUSER" ] ; then
 fi
 
 if [ ! -z "$UNTIS" ] ; then
-  UNTIS=$(which next-lesson.sh)
-  if [ -z "$UNTIS" ] ; then
-    UNTIS="./next-lesson.sh"
-    if [ ! -x "$UNTIS" ] ; then
-      UNTIS="$MYDIR/../../proposito-unitis/bin/next-lesson.sh"
-      if [ ! -x "$UNTIS" ] ; then
-        echo "Untis command line tools not found."
-        rm -f $TMPFILE $GROUPLIST $USERLIST
-        exit 1
-      fi
-    fi
-  fi
+  UNTIS_DIR=$(dirname $UNTIS_NEXT_LESSON)
   # timetable can be fetched silently
   if [ ! -z "$UNTIS_URL" ] ; then
-    $(dirname $UNTIS)/fetchtimetable.sh
+    $UNTIS_DIR/fetchtimetable.sh
   fi
-  echo $UNTIS -z -f "$FORM" -s "$COURSE"
-  UNTIS_TIME=$($UNTIS -z -f "$FORM" -s "$COURSE")
+  echo $UNTIS_NEXT_LESSON -z -f "$FORM" -s "$COURSE"
+  UNTIS_TIME=$($UNTIS_NEXT_LESSON -z -f "$FORM" -s "$COURSE")
   if [ $(echo "$UNTIS_TIME"|grep "Please fetch"|wc -l) -gt 0 ] ; then
     if [ ! -z "$UNTIS_HOST" ] && [ ! -z "$UNTIS_SCHOOL" ] ; then
       $(dirname $UNTIS)/fetchtimetable.sh -i
@@ -377,9 +366,10 @@ if [ ! -z "$UNTIS" ] ; then
     fi
   fi
   if [ $(echo "$UNTIS_TIME"|grep "Please fetch"|wc -l) -gt 0 ] ; then
-    echo "WARNING: Current Untis timetable data is missing."
+    text_info Untis no_timetable
   else
     if [ "$UNTIS_TIME" = '?' ] ; then
+      text_info Untis no_timetable
       echo "WARNING: Could not find upcoming lesson for $COURSE in form $FORM in your untis timetable."
     else
       if [ -z "$(uname -v|grep Darwin)" ] ; then
@@ -448,6 +438,6 @@ if [ ! -z "$ISSUE" ] ; then
   DATA=$(curl -b ~/.iserv.$USERNAME -H "Content-type: application/x-www-form-urlencoded" -X POST -D - \
               -d "$EXERCISE" $BACKEND/exercise/manage/exercise/add 2> /dev/null > /tmp/lunette.analyze|grep ^Location: /tmp/lunette.analyze |cut -d ' ' -f 2)
   # echo "System result URL: $DATA"
-  $(text_info issued_title issued_text)
+  text_info issued_title issued_text
 fi
 rm -f $TMPFILE $GROUPLIST $USERLIST

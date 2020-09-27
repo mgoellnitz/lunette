@@ -37,46 +37,61 @@ function message {
       LANGUAGE="de"
     fi
   fi
-  FILENAME=$LIBDIR/messages_$LANGUAGE.txt
+  local FILENAME=$LIBDIR/messages_$LANGUAGE.txt
   if [ ! -f "$FILENAME" ] ; then
     FILENAME=$LIBDIR/messages.txt
   fi
   
   local RESULT=
-  if [ ! -z "$1" ] ; then
-    if [ -z "$(echo "$1"|sed -e 's/[a-z][a-z_]*//g')" ] ; then
-      RESULT=$(grep ^$1= $FILENAME|sed -e "s/^$1=\(.*\)$/\1/g")
+  KEY=$1
+  shift
+  if [ ! -z "$KEY" ] ; then
+    if [ -z "$(echo "$KEY"|sed -e 's/[a-z][a-z_]*//g')" ] ; then
+      RESULT=$(grep ^$KEY= $FILENAME|sed -e "s/^$KEY=\(.*\)$/\1/g")
+      for p in $@ ; do
+        RESULT=$(echo $RESULT|sed -e "s/{}/$(echo $p|sed -e 's/\//\\\//g')/")
+      done
     fi
   fi
   if [ -z "$RESULT" ] ; then
-    RESULT=$1
+    RESULT=$KEY
   fi
   echo "$RESULT"
 }
 
 # $1 title $2 text
 function text_info {
+  local TITLE=$1
+  shift
+  local TEXT=$1
+  shift
   if [ -x "$(which osascript)" ] ; then
-    osascript -e 'display dialog "'"$(message "$2")"'" with icon note buttons {"Ok"} default button "Ok"'|sed -e 's/button.returned:Ok//g'
+    osascript -e 'display dialog "'"$(message "$TEXT" $@)"'" with icon note buttons {"'"$(message button_ok)"'"} default button "'"$(message button_ok)"'"'|sed -e 's/button.returned:'"$(message button_ok)"'//g'
   else
     if [ -z "$ZENITY" ] ; then
-      echo "$(message "$2")"
+      echo "$(message "$TEXT" $@)"
     else
-      $ZENITY --info --title="$(message "$1")" --text="$(message "$2")" --no-wrap
+      $ZENITY --info --title="$(message "$TITLE")" --text="$(message "$TEXT" $@)" --no-wrap
     fi
   fi
 }
 
 # $1 title $2 text $3 default
 function text_input {
+  local TITLE=$1
+  shift
+  local TEXT=$1
+  shift
+  local DEFAULT=$1
+  shift
   if [ -x "$(which osascript)" ] ; then
-    RESULT=$(osascript -e 'display dialog "'"$(message "$2")"'" default answer "'"$3"'" with icon note buttons {"Ok"} default button "Ok"'|sed -e 's/^.*text.returned:\(.*\)$/\1/g')
+    RESULT=$(osascript -e 'display dialog "'"$(message "$TEXT")"'" default answer "'"$DEFAULT"'" with icon note buttons {"'"$(message button_ok)"'"} default button "'"$(message button_ok)"'"'|sed -e 's/^.*text.returned:\(.*\)$/\1/g')
   else
     if [ -z "$ZENITY" ] ; then
-      echo -n "$(message "$2"): " 1>&2
+      echo -n "$(message "$TEXT"): " 1>&2
       read RESULT
     else
-      RESULT=$($ZENITY --entry --title="$(message "$1")" --text="$(message "$2")" --entry-text="$3"|sed -e 's/\r//g')
+      RESULT=$($ZENITY --entry --title="$(message "$TITLE")" --text="$(message "$TEXT" $@)" --entry-text="$DEFAULT"|sed -e 's/\r//g')
     fi
   fi
   echo "$RESULT"
@@ -85,7 +100,7 @@ function text_input {
 # $1 title $2 text $3 default
 function password_input {
   if [ -x "$(which osascript)" ] ; then
-    RESULT=$(osascript -e 'display dialog "'"$(message "$2")"'" default answer "'"$3"'" with icon note buttons {"Ok"} default button "Ok" with hidden answer'|sed -e 's/^.*text.returned:\(.*\)$/\1/g')
+    RESULT=$(osascript -e 'display dialog "'"$(message "$2")"'" default answer "'"$3"'" with icon note buttons {"'"$(message button_ok)"'"} default button "'"$(message button_ok)"'" with hidden answer'|sed -e 's/^.*text.returned:\(.*\)$/\1/g')
   else
     if [ -z "$ZENITY" ] ; then
       echo -n "$(message "$2"): " 1>&2
@@ -97,12 +112,18 @@ function password_input {
   echo "$RESULT"
 }
 
-# select one element from list given by $4 with title $1, text $2, and column $3 - no none GUI version available
+# select one element from list given by $@ with title $1, text $2, and column $3 - no none GUI version available
 function list_select {
+  local TITLE=$1
+  shift
+  local TEXT=$1
+  shift
+  local COLUMN=$1
+  shift
   if [ -x "$(which osascript)" ] ; then
-    RESULT=$(osascript -e 'choose from list {"'$(echo "$4"|sed -e 's/ /","/g')'"} with prompt "'"$(message "$2")"'"'|sed -e 's/^.*text.returned:\(.*\)$/\1/g')
+    RESULT=$(osascript -e 'choose from list {"'$(echo "$@"|sed -e 's/ /","/g')'"} with prompt "'"$(message "$TEXT")"'"'|sed -e 's/^.*text.returned:\(.*\)$/\1/g')
   else
-    RESULT=$($ZENITY --list --title "$(message "$1")" --text "$(message "$2")" --column "$(message "$3")" $4|sed -e 's/\r//g'|cut -d '|' -f 1)
+    RESULT=$($ZENITY --list --title "$(message "$TITLE")" --text "$(message "$TEXT")" --column "$(message "$COLUMN")" $@|sed -e 's/\r//g'|cut -d '|' -f 1)
   fi
   echo "$RESULT"
 }
@@ -138,7 +159,7 @@ function select_date {
 # title $1, text $2 - no none GUI version available
 function question {
   if [ -x "$(which osascript)" ] ; then
-    osascript -e 'display dialog "'"$(message "$2")"'" with icon caution buttons {"Yes","No"} default button "Yes"'|grep "returned:Yes"|sed -e 's/button.returned.Yes/true/g'
+    osascript -e 'display dialog "'"$(message "$2")"'" with icon caution buttons {"'"$(message button_yes)"'","'"$(message button_no)"'"} default button "'"$(message button_yes)"'"'|grep "returned:$(message button_yes)"|sed -e 's/button.returned.'"$(message button_yes)"'/true/g'
   else
     $ZENITY --question --title="$(message "$1")" --text="$(message "$2")" --no-wrap
   fi
@@ -148,10 +169,10 @@ function question {
 function text_area {
   if [ -x "$(which osascript)" ] ; then
     if [ -z "$2" ] ; then
-      osascript -e 'display dialog "'"$(message "$1")"'" default answer linefeed buttons {"Ok"} default button "Ok"'|sed -e 's/^.*text.returned:\(.*\)$/\1/g'
+      osascript -e 'display dialog "'"$(message "$1")"'" default answer linefeed buttons {"'"$(message button_ok)"'"} default button "'"$(message button_ok)"'"'|sed -e 's/^.*text.returned:\(.*\)$/\1/g'
     else
       DEFAULT=$(cat "$2")
-      osascript -e 'display dialog "'"$(message "$1")"'" default answer "'"$DEFAULT"'" buttons {"Ok"} default button "Ok"'|sed -e 's/^.*text.returned:\(.*\)$/\1/g'
+      osascript -e 'display dialog "'"$(message "$1")"'" default answer "'"$DEFAULT"'" buttons {"'"$(message button_ok)"'"} default button "'"$(message button_ok)"'"'|sed -e 's/^.*text.returned:\(.*\)$/\1/g'
     fi
   else
     if [ -z "$2" ] ; then
