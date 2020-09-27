@@ -42,6 +42,7 @@ function message {
     FILENAME=$LIBDIR/messages.txt
   fi
   
+  local RESULT=
   if [ ! -z "$1" ] ; then
     if [ -z "$(echo "$1"|sed -e 's/[a-z][a-z_]*//g')" ] ; then
       RESULT=$(grep ^$1= $FILENAME|sed -e "s/^$1=\(.*\)$/\1/g")

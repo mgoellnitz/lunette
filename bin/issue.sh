@@ -130,7 +130,6 @@ if [ "$FILENAME" = "=/" ] ; then
   FILENAME=
 fi
 EXERCISETITLE=$(basename "$FILENAME" .txt)
-
 if [ -z "$TEACHER" ] ; then
   echo "$(message no_token)"
   echo ""
@@ -269,6 +268,24 @@ else
     CONTENT=$(text_area modify_exercise "$(echo $FILENAME|sed -e 's/\/mnt\/\([a-z]\)\//\1:\//g')")
   fi
 fi
+
+SEARCH_TOKEN=$(curl -b ~/.iserv.$USERNAME $BACKEND/file 2> /dev/null|grep -A1 search__token|tail -1|sed -e 's/^.*value="\([A-Za-z0-9_\-]*\).*$/\1/g')
+# echo Search Token $SEARCH_TOKEN
+for SEARCH_TERM in $(echo "$CONTENT"|grep ^file: |sed -e 's/^file://g') ; do
+  # echo $SEARCH_TERM
+  PARAMETERS="search[search]=$SEARCH_TERM"
+  PARAMETERS="${PARAMETERS}&search[path]="
+  PARAMETERS="${PARAMETERS}&search[_token]=$SEARCH_TOKEN"
+  RESULT=$(curl -b ~/.iserv.$USERNAME -H "Content-type: application/x-www-form-urlencoded" -X POST -d "$PARAMETERS" $BACKEND/file_search 2> /dev/null)
+  # echo "$RESULT"
+  if [ $(echo $RESULT|jq .status) != "\"error\"" ] ; then
+    REPLACEMENT=$(echo "$BACKEND$(echo $RESULT|jq '.data[]|select(.type.id == "File")|.name.link'|sed -e 's/.iserv//g'|sed -e 's/"//g')"|sed -e 's/\//\\\//g')
+    # echo "$REPLACEMENT"
+    CONTENT=$(echo "$CONTENT"|sed -e "s/file:$SEARCH_TERM/$REPLACEMENT/g")
+  fi
+done
+
+echo -e "$CONTENT"
 
 AUTHCHECK=$(grep 'missing.*required.*authorization' $TMPFILE|wc -l)
 if [ "$AUTHCHECK" -gt 0 ] ; then
