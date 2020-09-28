@@ -109,7 +109,7 @@ ENDDATE=$(cat $TMPFILE|grep -A1 Abgabetermin|tail -1|sed -e 's/<td>//g'|sed -e '
 
 LINE_COUNT=$(wc -l $TMPFILE|sed -e 's/^\ *//g'|cut -d ' ' -f 1)
 
-DESC_START_LINE=$(cat $TMPFILE|grep -n Beschreibung|cut -d ':' -f 1)
+DESC_START_LINE=$(cat $TMPFILE|grep -n Beschreibung:|cut -d ':' -f 1)
 if [ -z "$DESC_START_LINE" ] ; then
   echo "$(message no_exercise)"
   exit
