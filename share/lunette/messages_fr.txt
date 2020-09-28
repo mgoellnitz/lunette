@@ -8,6 +8,7 @@ school=École
 subject_selection=Sélection des matières scolaires
 no_session=Erreur\: aucune session active trouvée. Avez-vous émis 'createession.sh'?
 no_login=Pas connecté.
+no_subject=
 no_exercise=Aucun exercice avec l'ID donné trouvé.
 no_participant=Aucun participant donné.
 no_permission=Vous ne pouvez pas publier d'exercices sur ce système en tant qu'utilisateur {}@{}

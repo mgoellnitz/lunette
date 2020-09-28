@@ -8,6 +8,7 @@ school=Schule
 subject_selection=iServ - Voreinstellung Fach
 no_session=Fehler: Keine aktive Sitzung gefunden. Haben Sie bereits eine mit 'createsession.sh" erzeugt?
 no_login=Nicht eingeloggt.
+no_subject=Kein (gültiges) Fachkennzeichen ('Tag') angegeben ({}).
 no_exercise=Es gibt keine Aufgabe mit der angegebenen ID.
 no_participant=Es sind keine Teilnehmer angegeben.
 no_permission=Sie dürfen als {} keine Aufgaben auf {} stellen.

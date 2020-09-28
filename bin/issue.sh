@@ -62,7 +62,7 @@ fi
 # TYPE: confirmation|files|text
 TYPE="confirmation"
 TEACHER=$SCHOOL_TOKEN
-TAGNAME=$ISERV_TAG
+TAGNAME="$ISERV_TAG"
 BACKEND=$ISERV_BACKEND
 TITLEPREFIX=""
 FORM=""
@@ -111,7 +111,7 @@ while [ "$PSTART" = "-" ] ; do
   fi
   if [ "$1" = "-l" ] ; then
     shift
-    LANGUAGE=${1}
+    SCHOOL_LANGUAGE=${1}
   fi
   if [ "$1" = "-m" ] ; then
     shift
@@ -157,10 +157,10 @@ if [ -z "$PROFILE" ] ; then
       PATTERN=$(text_input iServ enter_username_for "$BACKEND")
     fi
   fi
-  if [ -z "$LANGUAGE" ] ; then
+  if [ -z "$SCHOOL_LANGUAGE" ] ; then
     $MYDIR/createsession.sh $PATTERN
   else
-    $MYDIR/createsession.sh -l $LANGUAGE $PATTERN
+    $MYDIR/createsession.sh -l $SCHOOL_LANGUAGE $PATTERN
   fi
   PROFILE=$(ls ~/.iserv.*${PATTERN}*|head -1)
   BACKEND=$(cat $PROFILE|grep ISERV_BACKEND|sed -e 's/#.ISERV_BACKEND=//g')
@@ -175,10 +175,10 @@ else
   SESSIONCHECK=$(grep 'Redirecting.to.*.login' $TMPFILE)
   if [ ! -z "$SESSIONCHECK" ] ; then
     message expired
-    if [ -z "$LANGUAGE" ] ; then
+    if [ -z "$SCHOOL_LANGUAGE" ] ; then
       $MYDIR/createsession.sh $USERNAME $BACKEND
     else
-      $MYDIR/createsession.sh -l $LANGUAGE $USERNAME $BACKEND
+      $MYDIR/createsession.sh -l $SCHOOL_LANGUAGE $USERNAME $BACKEND
     fi
     curl -b ~/.iserv.$USERNAME $BACKEND/exercise/manage/exercise/add 2> /dev/null >$TMPFILE
   fi
@@ -302,7 +302,7 @@ for tag in $(grep option.va $TMPFILE |sed -e 's/.*"\(.*\)".*/\1/g'|grep ^[0-9]) 
   fi
 done
 if [ -z "$TAGS" ] ; then
-  echo "No (valid) school subject given ($TAGNAME)."
+  message subject_selection no_subject "$TAGNAME"
   echo ""
   rm -f $TMPFILE
   usage

@@ -8,6 +8,7 @@ school=Schola
 subject_selection=Selectio disciplinae
 no_session=Erratum: Nullum annuntiatum reperitur. Illum arcesse cum createsession.sh, queso.
 no_login=Non annuntiatus.
+no_subject=Nulla disciplina recta datur ({}).
 no_exercise=Nullum pensum cum numerus datus
 no_participant=Nulli participatores datur
 no_permission={}@{} pensa confabricare non potest.

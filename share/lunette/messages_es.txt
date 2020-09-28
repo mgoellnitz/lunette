@@ -8,6 +8,7 @@ school=Colegio
 subject_selection=Selección de asignaturas escolares
 no_session=Error\: no se encontró ninguna sesión activa. ¿Emitió 'creaession.sh'?
 no_login=Sin iniciar sesión.
+no_subject=
 no_exercise=No se encontró ningún ejercicio con el ID proporcionado.
 no_participant=No se dieron participantes.
 no_permission=No puede emitir ejercicios en este sistema como usuario {}@{}

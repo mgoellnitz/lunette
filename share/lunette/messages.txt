@@ -8,6 +8,7 @@ school=School
 subject_selection=School Subject Selection
 no_session=Error: No active session found. Did you issue 'createsession.sh'?
 no_login=Not logged in.
+no_subject=No (valid) school subject given ({}).
 no_exercise=No exercise with the given ID found.
 no_participant=No participants given.
 no_permission=You may not issue exercises on this system as user {}@{}
