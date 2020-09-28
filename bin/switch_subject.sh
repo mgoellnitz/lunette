@@ -48,9 +48,9 @@ if [ ! -z "$PROFILE" ] && [ ! -z "$GUI" ] ; then
     for tag in $(grep option.va $TMPFILE |sed -e 's/.*"\(.*\)".*/\1/g'|grep ^[0-9]) ; do
       value=$(grep -A2 value.\"$tag\" $TMPFILE|tail -1|sed -e 's/\ *>\([A-Za-z][A-Za-z\ ]*\).*/\1/g')
       # echo "$tag: $value"
-      TAGS=$(echo "${TAGS}${value}\n")
+      TAGS=$(echo "${TAGS}$(echo $value|sed -e 's/\ /_/g')\n")
     done
-    ISERV_TAG=$(list_select subject_selection default_subject subject_tag $(echo -e "$TAGS"))
+    ISERV_TAG=$(list_select subject_selection default_subject subject_tag $(echo -e "$TAGS")|sed -e 's/_/ /g')
   else
     echo "$(message expired)"
     ISERV_TAG=$(text_input subject_selection default_subject "$ISERV_TAG")

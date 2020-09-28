@@ -187,5 +187,5 @@ function text_area {
 function default {
   grep -v "${1}=" ~/.bashrc > brc 
   mv brc ~/.bashrc
-  echo "export ${1}=${2}" >> ~/.bashrc
+  echo "export ${1}=\"${2}\"" >> ~/.bashrc
 }
