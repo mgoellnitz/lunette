@@ -57,7 +57,7 @@ PSTART=`echo $1|sed -e 's/^\(.\).*/\1/g'`
 while [ "$PSTART" = "-" ] ; do
   if [ "$1" = "-l" ] ; then
     shift
-    export SCHOOL_LANGUAGE=${1}
+    export LANGUAGE=${1}
   fi
   shift
   PSTART=`echo $1|sed -e 's/^\(.\).*/\1/g'`

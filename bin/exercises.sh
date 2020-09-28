@@ -45,7 +45,7 @@ while [ "$PSTART" = "-" ] ; do
   fi
   if [ "$1" = "-l" ] ; then
     shift
-    export SCHOOL_LANGUAGE=${1}
+    export LANGUAGE=${1}
   fi
   if [ "$1" = "-p" ] ; then
     URLADDON='?filter%5Bstatus%5D=past'

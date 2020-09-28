@@ -29,15 +29,26 @@ if [ ! -z "$ZENITY" ] || [ ! -z "$(uname -v|grep Darwin)" ] ; then
   GUI=gui
 fi
 
+DONE=
+for l in $(echo "$LANGUAGE"|sed -e 's/_[a-zA-Z][a-zA-Z]//g'|sed -e 's/:/ /g') ; do
+  FILENAME=$LIBDIR/messages_$l.txt
+  if [ -z "$DONE" ] && [ -f "$FILENAME" ] ; then
+    DONE=true
+    LANGUAGE=$l
+  fi
+done
+FILENAME=
+DONE=
+if [ -z "$LANGUAGE" ] ; then
+  LANGUAGE=$(echo $LANG|cut -d '_' -f 1)
+  if [ -z "$LANGUAGE" ] ; then
+    LANGUAGE="de"
+  fi
+fi
+
 # localized message translation $1 is a message key
 function message {
-  if [ -z "$SCHOOL_LANGUAGE" ] ; then
-    SCHOOL_LANGUAGE=$(echo $LANG|cut -d '_' -f 1)
-    if [ -z "$SCHOOL_LANGUAGE" ] ; then
-      SCHOOL_LANGUAGE="de"
-    fi
-  fi
-  local FILENAME=$LIBDIR/messages_$SCHOOL_LANGUAGE.txt
+  local FILENAME=$LIBDIR/messages_$LANGUAGE.txt
   if [ ! -f "$FILENAME" ] ; then
     FILENAME=$LIBDIR/messages.txt
   fi

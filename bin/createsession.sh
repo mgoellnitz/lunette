@@ -43,7 +43,7 @@ while [ "$PSTART" = "-" ] ; do
   fi
   if [ "$1" = "-l" ] ; then
     shift
-    SCHOOL_LANGUAGE=${1}
+    LANGUAGE=${1}
   fi
   shift
   PSTART=`echo $1|sed -e 's/^\(.\).*/\1/g'`
