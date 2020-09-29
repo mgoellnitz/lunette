@@ -413,7 +413,9 @@ if [ -z $ISSUE ] ; then
     if [ "$TYPE" = "confirmation" ] ; then
       XTYPE="$(message type_confirmation)"
     fi
-    if [ $(question "$TITLE ($TAGNAME)" "Zur Abgabe $ENDDATE über $XTYPE (Start: $STARTDATE)\n\nTeilnehmer: $PARTICIPANTGROUP $PARTICIPANTUSER\n\n$CONTENT\n\nMöchten Sie die Aufgabe so stellen?") ] ; then
+    DESCRIPTION="$(message submission_text $ENDDATE $XTYPE $STARTDATE)\n\n$(message participants): $PARTICIPANTGROUP $PARTICIPANTUSER\n\n$CONTENT\n\n$(message are_you_sure)"
+    # echo "$DESCRIPTION"
+    if [ $(question "$TITLE ($TAGNAME)" "$DESCRIPTION") ] ; then
       ISSUE="j"
     fi
   fi
