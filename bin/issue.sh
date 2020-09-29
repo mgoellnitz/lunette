@@ -231,7 +231,8 @@ if [ -z "$PARTICIPANTUSER" ] && [ -z "$PARTICIPANTGROUP" ] ; then
     TAGNAME=$(text_input subject subject_tag "$TAGNAME")
     STARTDATE=$(select_date startdate 0 9)
     if [ -x "$UNTIS_NEXT_LESSON" ] ; then
-      if $(question Untis ask_untis) ; then
+      if [ $(question Untis ask_untis) ] ; then
+        echo "asking Untis later..."
         UNTIS="untis"
       fi
     fi
@@ -404,15 +405,15 @@ if [ -z $ISSUE ] ; then
     echo ""
   else
     if [ "$TYPE" = "files" ] ; then
-      XTYPE="Datei(en)"
+      XTYPE="$(message type_files)"
     fi
     if [ "$TYPE" = "text" ] ; then
-      XTYPE="Text"
+      XTYPE="$(message type_text)"
     fi
     if [ "$TYPE" = "confirmation" ] ; then
-      XTYPE="Bestätigung"
+      XTYPE="$(message type_confirmation)"
     fi
-    if $(question "$TITLE ($TAGNAME)" "Zur Abgabe $ENDDATE über $XTYPE (Start: $STARTDATE)\n\nTeilnehmer: $PARTICIPANTGROUP $PARTICIPANTUSER\n\n$CONTENT\n\nMöchten Sie die Aufgabe so stellen?") ; then
+    if [ $(question "$TITLE ($TAGNAME)" "Zur Abgabe $ENDDATE über $XTYPE (Start: $STARTDATE)\n\nTeilnehmer: $PARTICIPANTGROUP $PARTICIPANTUSER\n\n$CONTENT\n\nMöchten Sie die Aufgabe so stellen?") ] ; then
       ISSUE="j"
     fi
   fi

@@ -172,7 +172,9 @@ function question {
   if [ -x "$(which osascript)" ] ; then
     osascript -e 'display dialog "'"$(message "$2")"'" with icon caution buttons {"'"$(message button_yes)"'","'"$(message button_no)"'"} default button "'"$(message button_yes)"'"'|grep "returned:$(message button_yes)"|sed -e 's/button.returned.'"$(message button_yes)"'/true/g'
   else
-    $ZENITY --question --title="$(message "$1")" --text="$(message "$2")" --no-wrap
+    if $ZENITY --question --title="$(message "$1")" --text="$(message "$2")" --no-wrap ; then
+      echo "yes"
+    fi
   fi
 }
 
