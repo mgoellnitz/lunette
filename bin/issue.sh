@@ -172,7 +172,7 @@ else
   PROFILE=$(basename $PROFILE)
   USERNAME=$(echo ${PROFILE#.iserv.})
   curl -b ~/.iserv.$USERNAME $BACKEND/exercise/manage/exercise/add 2> /dev/null >$TMPFILE
-  SESSIONCHECK=$(grep 'Redirecting.to.*.login' $TMPFILE)
+  SESSIONCHECK=$(grep 'Redirecting.to.*.login' $TMPFILE;grep 'missing.*required.*authorization' $TMPFILE)
   if [ ! -z "$SESSIONCHECK" ] ; then
     message expired
     if [ -z "$LANGUAGE" ] ; then
