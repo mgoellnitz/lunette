@@ -357,15 +357,15 @@ if [ ! -z "$UNTIS" ] ; then
   if [ ! -z "$UNTIS_URL" ] ; then
     $UNTIS_DIR/fetchtimetable.sh
   fi
-  echo $UNTIS_NEXT_LESSON -z -f "$FORM" -s "$COURSE"
+  echo $UNTIS_NEXT_LESSON -k -z -f "$FORM" -s "$COURSE"
   UNTIS_TIME=$($UNTIS_NEXT_LESSON -z -f "$FORM" -s "$COURSE")
-  if [ $(echo "$UNTIS_TIME"|grep "Please fetch"|wc -l) -gt 0 ] ; then
+  if [ $(echo "$UNTIS_TIME"|grep "^20"|wc -l) -eq 0 ] ; then
     if [ ! -z "$UNTIS_HOST" ] && [ ! -z "$UNTIS_SCHOOL" ] ; then
-      $(dirname $UNTIS)/fetchtimetable.sh -i
-      UNTIS_TIME=$($UNTIS -z -f "$FORM" -s "$COURSE")
+      $UNTIS_DIR/fetchtimetable.sh -i
+      UNTIS_TIME=$($UNTIS_NEXT_LESSON -k -z -f "$FORM" -s "$COURSE")
     fi
   fi
-  if [ $(echo "$UNTIS_TIME"|grep "Please fetch"|wc -l) -gt 0 ] ; then
+  if [ $(echo "$UNTIS_TIME"|grep "^20"|wc -l) -eq 0 ] ; then
     text_info Untis no_timetable
   else
     if [ "$UNTIS_TIME" = '?' ] ; then
@@ -412,7 +412,7 @@ if [ -z $ISSUE ] ; then
     if [ "$TYPE" = "confirmation" ] ; then
       XTYPE="Bestätigung"
     fi
-    if $(question "$TITLE ($TAGNAME)" "Zur Abgabe $ENDDATE als \"$XTYPE\" (Start: $STARTDATE)\n\nTeilnehmer: $PARTICIPANTGROUP $PARTICIPANTUSER\n\n$CONTENT\n\nMöchten Sie die Aufgabe so stellen?") ; then
+    if $(question "$TITLE ($TAGNAME)" "Zur Abgabe $ENDDATE über $XTYPE (Start: $STARTDATE)\n\nTeilnehmer: $PARTICIPANTGROUP $PARTICIPANTUSER\n\n$CONTENT\n\nMöchten Sie die Aufgabe so stellen?") ; then
       ISSUE="j"
     fi
   fi
