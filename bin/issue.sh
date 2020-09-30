@@ -432,14 +432,15 @@ if [ ! -z "$ISSUE" ] ; then
   if [ ! -z "$PARTICIPANTGROUP" ] ; then
     EXERCISE="${EXERCISE}&exercise[participantGroups][]=$PARTICIPANTGROUP"
   fi
-  EXERCISE="${EXERCISE}&exercise[text]=$CONTENT"
   EXERCISE="${EXERCISE}&exercise[tags][]=$TAGS"
   EXERCISE="${EXERCISE}&exercise[uploadedTempFiles][picker][]="
   EXERCISE="${EXERCISE}&exercise[actions][submit]="
   EXERCISE="${EXERCISE}&exercise[_token]=$TOKEN"
   # echo $EXERCISE
-  DATA=$(curl -b ~/.iserv.$USERNAME -H "Content-type: application/x-www-form-urlencoded" -X POST -D - \
-              -d "$EXERCISE" $BACKEND/exercise/manage/exercise/add 2> /dev/null > /tmp/lunette.analyze|grep ^Location: /tmp/lunette.analyze |cut -d ' ' -f 2)
+  DATA=$(curl -b ~/.iserv.$USERNAME -D - -H "Content-type: application/x-www-form-urlencoded" \
+              -X POST -d "$EXERCISE" --data-urlencode="exercise[text]=$CONTENT" \
+              $BACKEND/exercise/manage/exercise/add 2> /dev/null > /tmp/lunette.analyze \
+              |grep ^Location: /tmp/lunette.analyze |cut -d ' ' -f 2)
   # echo "System result URL: $DATA"
   text_info issued_title issued_text
 fi
