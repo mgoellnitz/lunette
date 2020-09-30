@@ -197,7 +197,7 @@ fi
 
 grep option.va $TMPFILE |sed -e 's/.*"\(.*\)".*/\1/g'|grep $(date +%Y) > $GROUPLIST
 if [ $(cat $GROUPLIST|wc -l) -eq 0 ] ; then
-  curl -b ~/.iserv.$USERNAME $BACKEND/profile/groups 2> /dev/null|grep option.value=|grep $(date +%Y)|sed -e 's/^.*option.value="\(.*\)"/\1/g' > $GROUPLIST
+  curl -b ~/.iserv.$USERNAME $BACKEND/profile/groups 2> /dev/null|grep option.value=|sed -e 's/^.*option.value="\(.*\)"/\1/g' > $GROUPLIST
 fi
 if [ -z "$PARTICIPANTUSER" ] && [ -z "$PARTICIPANTGROUP" ] ; then
   if [ -z "$GUI" ] ; then
@@ -206,19 +206,18 @@ if [ -z "$PARTICIPANTUSER" ] && [ -z "$PARTICIPANTGROUP" ] ; then
     usage
   else
     FORM=$(text_input form_title input_form "$SCHOOL_FORM")
-    if [ -z "$FORM" ] ; then
-      exit
+    if [ ! -z "$FORM" ] ; then
+      TITLEPREFIX="$FORM "
     fi
-    TITLEPREFIX="$FORM "
     FILTER="$FORM.*\.$(date +%Y)$"
     if [ $(grep "$FILTER" $GROUPLIST|wc -l) -ne 1 ] ; then
       if [ $(grep "$FILTER" $GROUPLIST|grep "\.$TEACHERLOWER\.$(date +%Y)$"|wc -l) -ne 1 ] ; then
         if [ $(grep "$FILTER" $GROUPLIST|grep "\.$TEACHERLOWER\.$(date +%Y)$"|wc -l) -gt 1 ] ; then
-          FILTER="$FORM.*$TEACHERLOWER\.$(date +%Y)$"
+          FILTER="$FORM.*$TEACHERLOWER\.$(date +%Y)$|[a-z]$"
         else
-          FILTER="$FORM\.$(date +%Y)$"
+          FILTER="$FORM\.$(date +%Y)$|[a-z]$"
         fi
-        PARTICIPANTGROUP=$(list_select participants select_group group $(grep "$FILTER" $GROUPLIST))
+        PARTICIPANTGROUP=$(list_select participants select_group group $(grep -E "$FILTER" $GROUPLIST))
         # echo "$TEACHERLOWER: $PARTICIPANTGROUP|grep \\.$TEACHERLOWER\.."
       else
         PARTICIPANTGROUP=$(grep "$FILTER" $GROUPLIST|grep "\.$TEACHERLOWER\.$(date +%Y)$")
@@ -308,7 +307,7 @@ if [ -z "$TAGS" ] ; then
   usage
 fi
 
-COURSE=$(echo $TAGNAME|sed -e 's/^\([A-Za-z][A-Za-z][A-Za-z]\).*/\1/g'|sed -e 's/Nat/NuT/g')
+COURSE=$(echo $TAGNAME|sed -e 's/^\([A-Za-z][A-Za-z][A-Za-z]\).*/\1/g'|sed -e 's/Nat/NuT/g'|sed -e 's/Son//g'|sed -e 's/Org//g')
 COURSELOWER=$(echo $COURSE| tr [:upper:] [:lower:])
 if [ ! -z "$PARTICIPANTGROUP" ] ; then
   FILTER="$PARTICIPANTGROUP"
@@ -335,8 +334,10 @@ if [ ! -z "$PARTICIPANTGROUP" ] ; then
     fi
   fi
   PARTICIPANTGROUP=$(grep "$FILTER" $GROUPLIST)
-  FORM="$(echo $PARTICIPANTGROUP|sed -e 's/^[a-z0-9]*\.//g'|sed -e 's/\.20[0-9][0-9]//g'|sed -e 's/\.[a-z][a-z]*//g'|sed -e 's/[a-z][a-z]*\.//g')"
-  TITLEPREFIX="$FORM "
+  if [ ! -z "$(echo $PARTICIPANTGROUP|grep "$(date +%Y)$")" ] ; then
+    FORM="$(echo $PARTICIPANTGROUP|sed -e 's/^[a-z0-9]*\.//g'|sed -e 's/\.20[0-9][0-9]//g'|sed -e 's/\.[a-z][a-z]*//g'|sed -e 's/[a-z][a-z]*\.//g')"
+    TITLEPREFIX="$FORM "
+  fi
 fi
 
 if [ ! -z "$PARTICIPANTUSER" ] ; then
@@ -382,7 +383,10 @@ if [ ! -z "$UNTIS" ] ; then
 fi
 
 TOKEN=$(grep -A1 exercise__token $TMPFILE |grep value|sed -e 's/.*value="\([0-9a-zA-Z_\-]*\).*/\1/g')
-TITLE="$COURSE $TITLEPREFIX$TEACHER - $EXERCISETITLE"
+if [ ! -z "$COURSE" ] ; then
+  COURSE="$COURSE "
+fi
+TITLE="$COURSE$TITLEPREFIX$TEACHER - $EXERCISETITLE"
 
 if [ -z "$GUI" ] ; then
   echo "$TITLE: ($TYPE) [$TOKEN]"
