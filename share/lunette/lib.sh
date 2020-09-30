@@ -93,16 +93,14 @@ function text_input {
   shift
   local TEXT=$1
   shift
-  local DEFAULT=$1
-  shift
   if [ -x "$(which osascript)" ] ; then
-    RESULT=$(osascript -e 'display dialog "'"$(message "$TEXT")"'" default answer "'"$DEFAULT"'" with icon note buttons {"'"$(message button_ok)"'"} default button "'"$(message button_ok)"'"'|sed -e 's/^.*text.returned:\(.*\)$/\1/g')
+    RESULT=$(osascript -e 'display dialog "'"$(message "$TEXT")"'" default answer "'"$@"'" with icon note buttons {"'"$(message button_ok)"'"} default button "'"$(message button_ok)"'"'|sed -e 's/^.*text.returned:\(.*\)$/\1/g')
   else
     if [ -z "$ZENITY" ] ; then
       echo -n "$(message "$TEXT"): " 1>&2
       read RESULT
     else
-      RESULT=$($ZENITY --entry --title="$(message "$TITLE")" --text="$(message "$TEXT" $@)" --entry-text="$DEFAULT"|sed -e 's/\r//g')
+      RESULT=$($ZENITY --entry --title="$(message "$TITLE")" --text="$(message "$TEXT")" --entry-text="$@"|sed -e 's/\r//g')
     fi
   fi
   echo "$RESULT"
