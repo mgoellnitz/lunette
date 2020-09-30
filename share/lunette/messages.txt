@@ -55,3 +55,4 @@ button_yes = Yes
 button_no = No
 submission_text = For submission {} {} as {} (start date\: {} {})
 are_you_sure = Issue exercise this way?
+files_of = Files for

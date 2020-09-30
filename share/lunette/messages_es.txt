@@ -55,3 +55,4 @@ button_yes = Si
 button_no = No
 submission_text = Sumisión {} {} como {} (Fecha de inicio\: {} {})
 are_you_sure = ¿Le gustaría establecer la tarea de esta manera?
+files_of = Archivos de

@@ -55,3 +55,4 @@ button_yes = Ja
 button_no = Nein
 submission_text = Zur Abgabe {} {} über {} (Startdatum\: {} {})
 are_you_sure = Möchten Sie die Aufgabe so stellen?
+files_of = Dateien für

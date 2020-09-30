@@ -55,3 +55,4 @@ button_yes = Annuo
 button_no = Abnuto
 submission_text = Ad finis {} {} via {} (Hora initii\: {} {})
 are_you_sure = Hoc negotium ponere visne?
+files_of = Data pro
