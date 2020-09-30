@@ -219,7 +219,6 @@ if [ -z "$PARTICIPANTUSER" ] && [ -z "$PARTICIPANTGROUP" ] ; then
           FILTER="$FORM\.$(date +%Y)$"
         fi
         PARTICIPANTGROUP=$(list_select participants select_group group $(grep "$FILTER" $GROUPLIST))
-        # PARTICIPANTGROUP=$(text_input participants "Gruppe (Namensausschnitt)" "$FORM")
         # echo "$TEACHERLOWER: $PARTICIPANTGROUP|grep \\.$TEACHERLOWER\.."
       else
         PARTICIPANTGROUP=$(grep "$FILTER" $GROUPLIST|grep "\.$TEACHERLOWER\.$(date +%Y)$")
@@ -309,7 +308,7 @@ if [ -z "$TAGS" ] ; then
   usage
 fi
 
-COURSE=$(echo $TAGNAME|sed -e 's/^\([A-Za-z][A-Za-z][A-Za-z]\).*/\1/g')
+COURSE=$(echo $TAGNAME|sed -e 's/^\([A-Za-z][A-Za-z][A-Za-z]\).*/\1/g'|sed -e 's/Nat/NuT/g')
 COURSELOWER=$(echo $COURSE| tr [:upper:] [:lower:])
 if [ ! -z "$PARTICIPANTGROUP" ] ; then
   FILTER="$PARTICIPANTGROUP"
@@ -437,10 +436,9 @@ if [ ! -z "$ISSUE" ] ; then
   EXERCISE="${EXERCISE}&exercise[actions][submit]="
   EXERCISE="${EXERCISE}&exercise[_token]=$TOKEN"
   # echo $EXERCISE
-  DATA=$(curl -b ~/.iserv.$USERNAME -D - -H "Content-type: application/x-www-form-urlencoded" \
-              -X POST -d "$EXERCISE" --data-urlencode="exercise[text]=$CONTENT" \
-              $BACKEND/exercise/manage/exercise/add 2> /dev/null > /tmp/lunette.analyze \
-              |grep ^Location: /tmp/lunette.analyze |cut -d ' ' -f 2)
+  curl -b ~/.iserv.$USERNAME -D - -H "Content-type: application/x-www-form-urlencoded" \
+       -X POST -d "$EXERCISE" --data-urlencode "exercise[text]=$CONTENT" \
+       $BACKEND/exercise/manage/exercise/add 2> /dev/null > /tmp/lunette.analyze
   # echo "System result URL: $DATA"
   text_info issued_title issued_text
 fi
