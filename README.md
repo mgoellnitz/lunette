@@ -66,6 +66,15 @@ call `./install.sh` in the top level directory and answer the questions.
 
 (This installation method is not meant to be the most elegant way.)
 
+### Blind Installation
+
+The afforementioned way is also implemented as a script to be directly 
+downloaded and called by issuing
+
+```
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/mgoellnitz/lunette/master/blind-install.sh)"
+```
+
 
 ## Language Switch
 
@@ -269,6 +278,7 @@ lunette-setup.sh
 iServ Backend: sts-lohbruegge.de
 School Token: Li
 ```
+
 
 ## Related Repositories on Github
 
