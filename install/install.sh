@@ -36,8 +36,15 @@ if [ "$CHECK" -lt 4 ] ; then
     fi
   fi
 fi
-sudo cp bin/*.sh /usr/local/bin
-sudo cp linux/lunette.jpg /usr/local/lib
+if [ -w /usr/local/bin/lunette-setup.sh ] ; then
+  cp -p bin/*.sh /usr/local/bin
+  cp -p linux/lunette.jpg /usr/local/lib
+  cp -rp share/* /usr/local/share
+else
+  sudo cp -p bin/*.sh /usr/local/bin
+  sudo cp -p linux/lunette.jpg /usr/local/lib
+  sudo cp -rp share/* /usr/local/share
+fi
 if [ -z "$(uname -v|grep Darwin)" ] ; then
   if [ -d ~/Schreibtisch ] ; then
     cp linux/Lunette.desktop ~/Schreibtisch
@@ -46,7 +53,6 @@ if [ -z "$(uname -v|grep Darwin)" ] ; then
     cp linux/Lunette.desktop ~/Desktop
   fi
 fi
-sudo cp -r share/* /usr/local/share
 MYDIR=$(dirname $BASH_SOURCE)|sed -e 's/install\///g'|sed -e 's/^.bin/\./g'
 if [ -z "$MYDIR" ] ; then
   MYDIR="."
@@ -69,7 +75,11 @@ if [ ! -z "$WINDOWS" ] && [ ! -f /usr/local/bin/zenity.exe ] ; then
   rm zenity.zip
 fi
 if [ ! -z "$(uname -v|grep Darwin)" ] ; then
-  echo 'if [ -s ~/.bashrc ]; then source ~/.bashrc; fi' >> ~/.bash_profile
+  if [ -z "$(grep source....bashrc ~/.bash_profile)" ] ; then
+    echo 'if [ -s ~/.bashrc ]; then source ~/.bashrc; fi' >> ~/.bash_profile
+  fi
 fi
-lunette-setup.sh
-$(text_info installation installation_completed)
+if [ -z "$ISERV_BACKEND" ] ; then
+  lunette-setup.sh
+  $(text_info installation installation_completed)
+fi

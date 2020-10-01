@@ -25,6 +25,8 @@ stages:
 build:
   stage: lunette
   script: 
+  - chmod g-w $(ls */*.*)
+  - chmod o-w $(ls */*.*)
   - apt-get update ; apt-get install -yq jq file curl bash bash-completion
   - gradle build 
   - unzip build/distributions/*.zip
