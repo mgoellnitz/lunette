@@ -16,15 +16,19 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 MYNAME=`basename $0`
-MYDIR=`dirname $0`
+WD=$(pwd|sed -e 's/\//\\\//g')
+MYDIR=$(dirname $0|sed -e s/^\\./$WD/g|sed -e 's/\(^[a-zA-Z]\)/'$WD'\/\1/g')
 LIBDIR=$MYDIR/../share/lunette
 source $LIBDIR/lib.sh
 TMPFILE="/tmp/lunette.html"
+CSVFILE="/tmp/lunette.csv"
+IDFILE="/tmp/lunette.ids"
 
 function usage {
    echo "Usage: $MYNAME [-p] [-u pattern] [filter]"
    echo ""
    echo "  -p           list exercises from the past"
+   echo "  -d           download exercises including attachments into separate directories"
    echo "  -l language  set ISO-639 language code for output messages (except this one)"
    echo "  -u pattern   username or fragment of a username to list exercises for"
    echo "     filter    sub-expression for the exercise titles to search for"
@@ -35,13 +39,16 @@ function usage {
    exit
 }
 
-URLADDON=""
+URLADDON='?filter%5Bstatus%5D=current'
 
 PSTART=`echo $1|sed -e 's/^\(.\).*/\1/g'`
 while [ "$PSTART" = "-" ] ; do
   if [ "$1" = "-h" ] ; then
     usage
     exit
+  fi
+  if [ "$1" = "-d" ] ; then
+    DOWNLOAD=download
   fi
   if [ "$1" = "-l" ] ; then
     shift
@@ -99,4 +106,49 @@ fi
 
 URL=$BACKEND/exercise$URLADDON
 curl -b ~/.iserv.$USERNAME $URL 2> /dev/null|grep https|grep exercise.show | \
-      sed -e 's/^.*exercise.show.\([0-9]*\)\"./\1 /g'|sed -e 's/..a...td.*$//g'|grep "${FILTER}"
+      sed -e 's/^.*exercise.show.\([0-9]*\)\"./\1 /g'|sed -e 's/..a...td.*$//g'|grep "${FILTER}" > $IDFILE
+
+URL="$BACKEND/exercise.csv$URLADDON&sort%5Bby%5D=enddate&sort%5Bdir%5D=DESC"
+curl -b ~/.iserv.$USERNAME $URL 2> /dev/null > $CSVFILE
+FIRST=first
+while IFS='' read -r LINE || [[ -n "$LINE" ]]; do
+  # echo "Line: $LINE"
+  # echo "$LINE"|sed -e 's/;\(.*\)$/\1/'
+  RESPONSE=$(echo "$LINE"|sed -e 's/^\(.*\);\([^;]*\)$/\2/')
+  LINE=$(echo "$LINE"|sed -e 's/^\(.*\);\([^;]*\)$/\1/')
+  DONE=$(echo "$LINE"|sed -e 's/^\(.*\);\([^;]*\)$/\2/')
+  LINE=$(echo "$LINE"|sed -e 's/^\(.*\);\([^;]*\)$/\1/')
+  TAGS=$(echo "$LINE"|sed -e 's/^\(.*\);\([^;]*\)$/\2/')
+  LINE=$(echo "$LINE"|sed -e 's/^\(.*\);\([^;]*\)$/\1/')
+  ENDDATE=$(echo "$LINE"|sed -e 's/^\(.*\);\([^;]*\)$/\2/')
+  LINE=$(echo "$LINE"|sed -e 's/^\(.*\);\([^;]*\)$/\1/')
+  STARTDATE=$(echo "$LINE"|sed -e 's/^\(.*\);\([^;]*\)$/\2/')
+  LINE=$(echo "$LINE"|sed -e 's/^\(.*\);\([^;]*\)$/\1/')
+  TITLE=$(echo "$LINE"|sed -e 's/^\(.*\);\([^;]*\)$/\2/'|sed -e 's/^"//g'|sed -e 's/"$//g')
+  if [ -z "$FIRST" ] ; then
+    ID=$(grep "$TITLE" $IDFILE|cut -d ' ' -f 1)
+    OUTPUT="$ID "
+    if [ ! -z "$TAGS" ] ; then
+      OUTPUT="$OUTPUT$TAGS: "
+    fi
+    OUTPUT="$OUTPUT$TITLE ($STARTDATE -> $ENDDATE)"
+    if [ -z "$DONE" ] ; then
+      OUTPUT="$OUTPUT *"
+    fi
+    OUTPUT="$OUTPUT $RESPONSE"
+    if [ ! -z "$(echo "$OUTPUT"|grep "$FILTER")" ] ; then
+      echo "$OUTPUT"
+      if [ ! -z "$DOWNLOAD" ] ; then
+        if [ -x $MYDIR/exercise.sh ] ; then
+          FOLDER="$(echo $TITLE|sed -e 's/[\.\ ]/_/g'|sed -e 's/^\-//g'|sed -e 's/_$//g'|sed -e 's/^_//g')"
+          mkdir -p $FOLDER
+          (cd $FOLDER ; "$MYDIR/exercise.sh" -d $ID > $FOLDER.txt)
+        fi
+      fi
+    fi
+  else
+    FIRST=
+  fi
+done < $CSVFILE
+
+rm -f $TMPFILE $IDFILE $CSVFILE

@@ -26,8 +26,7 @@ function usage {
    echo ""
    echo "  -l language    set ISO-639 language code for output messages (except this one)"
    echo "  -u pattern     login of the user to read given exercise for"
-   echo "  -d             download exercise attachments into a subfolder"
-   echo "                 named following the exercise id"
+   echo "  -d             download exercise attachments"
    echo "     exerciseid  iServ internal ID of the exercise"
    echo "                 as to be drawn form exercises list command"
    echo ""
@@ -132,11 +131,10 @@ if [ $(cat $TMPFILE|grep iserv.img.default|wc -l) -ge 1 ] ; then
   echo "$(message attachments):"
   cat $TMPFILE|grep iserv.img.default|sed -e 's/^.*li.class.*a.href."\(.*\)"..img.class.*src=".*png".\(.*\)/\2/g'
   if [ "$DOWNLOAD" = "true" ] ; then
-    mkdir -p $EXERCISE
     for d in $(cat $TMPFILE|grep iserv.img.default|sed -e 's/^.*li.class.*a.href.".*\(\/exercise.*\)"..img.class.*src=".*png".\(.*\)/\1/g') ; do
       FILENAME=$(cat $TMPFILE|grep iserv.img.default|grep $d|sed -e 's/^.*li.class.*a.href.".*\(\/exercise.*\)"..img.class.*src=".*png".\(.*\)/\2/g')
       # echo $BACKEND$d $EXERCISE/$FILENAME
-      curl  -b ~/.iserv.$USERNAME -o "$EXERCISE/$FILENAME" $BACKEND$d 2> /dev/null
+      curl  -b ~/.iserv.$USERNAME -o "$FILENAME" $BACKEND$d 2> /dev/null
       # curl  -b ~/.iserv.$USERNAME -o $EXERCISE/$(echo $d|cut -d '/' -f 4) $BACKEND$d
     done
   fi

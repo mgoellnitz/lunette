@@ -145,7 +145,7 @@ Session creation results in two files in the home directory of the current
 user: `~/.session.user.name` holding the backend to be used for the user and 
 `~/.iserv.user.name` holding the cookies for the current session of that user.
 
-* List Exercises
+* List and Download Exercises
 
 To list the current exercises, issue the command
 
@@ -172,6 +172,20 @@ Exercises for claire.delune@https://bornbrook.de/iserv
 1234 Maths 6a - Fractions
 ```
 
+If you need the exercises' text and optional attachment offline stored on your
+local machine, you can add the download option.
+
+```
+$ exercises.sh -d Maths
+Exercises for claire.delune@https://bornbrook.de/iserv
+1234 Maths 6a - Fractions
+```
+
+This way, the exercises not only get listed, but for each exercise a directory
+gets created with a name following the title of the exercise. In this directory
+a textfile resembles the exercise and the attachments are downloaded next to
+it.
+
 It is also possible to list past exercises with an optional `-p` parameter.
 
 ```
@@ -195,22 +209,14 @@ to use.
 exercise.sh -u claire exerciseid
 ```
 
-To download the attachments to a local folder `exerciseid/`, add the download
-option.
+To download the attachments add the download option.
 
 ```
 exercise.sh -d exerciseid
 ```
 
-This will result in a subfolder of the current folder named `exerciseid` 
-containing the files mentioned in the exercise details.
-
-
-## Quickly fetch all Exercises as a local Mirror
-
-```
-for e in $(exercises.sh -p|cut -d ' ' -f 1) ; do exercise.sh -d $e > $e.txt ; done
-```
+This will result in the output of the exercise text again and the attachments
+of the exercise downloaded into the current working directory.
 
 
 ## Command Line Usage in Teacher's View
