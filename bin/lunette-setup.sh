@@ -22,6 +22,7 @@ source $LIBDIR/lib.sh
 
 ISERV_BACKEND=$(text_input iServ iserv_host "$(echo $ISERV_BACKEND|sed -e 's/^https:..\(.*\).iserv$/\1/g')")
 USERNAME=$(text_input "$ISERV_BACKEND" iserv_user "$(ls ~/.iserv.*|head -1|sed -e 's/.*.iserv.\(.*\)$/\1/g')")
+# This is a highly school specific pattern to tell teachers and students apart
 if [ ! -z "$(echo "$USERNAME"|grep "^[a-z]\.[a-z]")" ] ; then
   SCHOOL_TOKEN=$(text_input school school_token "$SCHOOL_TOKEN")
   ISERV_TAG=$(text_input subject_selection default_subject "$ISERV_TAG")

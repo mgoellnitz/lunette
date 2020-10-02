@@ -195,7 +195,9 @@ if [ ! -z "$SESSIONCHECK" ] ; then
   exit 1
 fi
 
-grep option.va $TMPFILE |sed -e 's/.*"\(.*\)".*/\1/g'|grep $(date +%Y) > $GROUPLIST
+GROUPLISTTAIL=$[ $(cat $TMPFILE|wc -l) - $(grep -n participantGroups $TMPFILE|cut -d ':' -f 1) ]
+GROUPLISTLENGTH=$(tail -$GROUPLISTTAIL $TMPFILE|grep -n participantUsers|cut -d ':' -f 1)
+tail -$GROUPLISTTAIL $TMPFILE|head -$GROUPLISTLENGTH|grep option.va|sed -e 's/.*"\(.*\)".*/\1/g' > $GROUPLIST
 if [ $(cat $GROUPLIST|wc -l) -eq 0 ] ; then
   curl -b ~/.iserv.$USERNAME $BACKEND/profile/groups 2> /dev/null|grep option.value=|sed -e 's/^.*option.value="\(.*\)"/\1/g' > $GROUPLIST
 fi
@@ -209,21 +211,54 @@ if [ -z "$PARTICIPANTUSER" ] && [ -z "$PARTICIPANTGROUP" ] ; then
     if [ ! -z "$FORM" ] ; then
       TITLEPREFIX="$FORM "
     fi
-    FILTER="$FORM.*\.$(date +%Y)$"
-    if [ $(grep "$FILTER" $GROUPLIST|wc -l) -ne 1 ] ; then
-      if [ $(grep "$FILTER" $GROUPLIST|grep "\.$TEACHERLOWER\.$(date +%Y)$"|wc -l) -ne 1 ] ; then
-        if [ $(grep "$FILTER" $GROUPLIST|grep "\.$TEACHERLOWER\.$(date +%Y)$"|wc -l) -gt 1 ] ; then
-          FILTER="$FORM.*$TEACHERLOWER\.$(date +%Y)$|[a-z]$"
-        else
-          FILTER="$FORM\.$(date +%Y)$|[a-z]$"
-        fi
-        PARTICIPANTGROUP=$(list_select participants select_group group $(grep -E "$FILTER" $GROUPLIST))
-        # echo "$TEACHERLOWER: $PARTICIPANTGROUP|grep \\.$TEACHERLOWER\.."
-      else
-        PARTICIPANTGROUP=$(grep "$FILTER" $GROUPLIST|grep "\.$TEACHERLOWER\.$(date +%Y)$")
+
+    BESTFILTER=""
+    FILTER="$FORM"
+    COUNT=$(grep "$FILTER" $GROUPLIST|wc -l)
+    if [ "$COUNT" -ne 0 ] ; then
+      BESTFILTER="$FILTER"
+      BESTCOUNT="$COUNT"
+    fi
+
+    if [ "$COUNT" -ne 1 ] ; then
+      FILTER="$FORM[\.\-_]$TEACHERLOWER"
+      COUNT=$(grep "$FILTER" $GROUPLIST|wc -l)
+    else
+      PARTICIPANTGROUP=$(grep "$FILTER" $GROUPLIST)
+    fi
+
+    if [ "$COUNT" -ne 1 ] ; then
+      if [ "$COUNT" -gt 0 ] && [ "$COUNT" -lt "$BESTCOUNT" ] ; then
+        BESTFILTER="$FILTER"
+        BESTCOUNT="$COUNT"
+      fi
+      FILTER="$FORM.*$(date +%Y)"
+      COUNT=$(grep "$FILTER" $GROUPLIST|wc -l)
+    else
+      PARTICIPANTGROUP=$(grep "$FILTER" $GROUPLIST)
+    fi
+
+    if [ "$COUNT" -ne 1 ] ; then
+      if [ "$COUNT" -gt 0 ] && [ "$COUNT" -lt "$BESTCOUNT" ] ; then
+        BESTFILTER="$FILTER"
+        BESTCOUNT="$COUNT"
+      fi
+      FILTER="$FORM.$(date +%Y)"
+      COUNT=$(grep "$FILTER" $GROUPLIST|wc -l)
+    else
+      PARTICIPANTGROUP=$(grep "$FILTER" $GROUPLIST)
+    fi
+
+    if [ "$COUNT" -ne 1 ] ; then
+      if [ "$COUNT" -gt 0 ] && [ "$COUNT" -lt "$BESTCOUNT" ] ; then
+        BESTFILTER="$FILTER"
+        BESTCOUNT="$COUNT"
       fi
     else
       PARTICIPANTGROUP=$(grep "$FILTER" $GROUPLIST)
+    fi
+    if [ -z "$PARTICIPANTGROUP" ] ; then
+      PARTICIPANTGROUP=$(list_select participants select_group group $(grep -E "$BESTFILTER" $GROUPLIST))
     fi
     # echo Group: $PARTICIPANTGROUP
     TAGNAME=$(text_input subject subject_tag "$TAGNAME")
