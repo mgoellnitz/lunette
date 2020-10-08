@@ -394,7 +394,7 @@ fi
 if [ ! -z "$UNTIS" ] ; then
   UNTIS_DIR=$(dirname $UNTIS_NEXT_LESSON)
   echo $UNTIS_NEXT_LESSON -k -z -f "$FORM" -s "$COURSE"
-  UNTIS_TIME=$($UNTIS_NEXT_LESSON -z -f "$FORM" -s "$COURSE")
+  UNTIS_TIME=$($UNTIS_NEXT_LESSON -k -z -f "$FORM" -s "$COURSE")
   if [ $(echo "$UNTIS_TIME"|grep "^20"|wc -l) -eq 0 ] ; then
     if [ "$(echo "$UNTIS_URL"|grep ':'|wc -l)" -gt 0 ] ; then
       # timetable can be fetched silently
