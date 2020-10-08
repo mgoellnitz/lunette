@@ -195,8 +195,12 @@ if [ ! -z "$SESSIONCHECK" ] ; then
   exit 1
 fi
 
-GROUPLISTTAIL=$[ $(cat $TMPFILE|wc -l) - $(grep -n participantGroups $TMPFILE|cut -d ':' -f 1) ]
-GROUPLISTLENGTH=$(tail -$GROUPLISTTAIL $TMPFILE|grep -n participantUsers|cut -d ':' -f 1)
+GROUPLISTTAIL=$(cat $TMPFILE|wc -l)
+GROUPLISTLENGTH=$GROUPLISTTAIL
+if [ ! -z "$(grep -n participant[GU] $TMPFILE)" ] ; then
+  GROUPLISTTAIL=$[ $(cat $TMPFILE|wc -l) - $(grep -n participantGroups $TMPFILE|cut -d ':' -f 1) ]
+  GROUPLISTLENGTH=$(tail -$GROUPLISTTAIL $TMPFILE|grep -n participantUsers|cut -d ':' -f 1)
+fi
 tail -$GROUPLISTTAIL $TMPFILE|head -$GROUPLISTLENGTH|grep option.va|sed -e 's/.*"\(.*\)".*/\1/g' > $GROUPLIST
 if [ $(cat $GROUPLIST|wc -l) -eq 0 ] ; then
   curl -b ~/.iserv.$USERNAME $BACKEND/profile/groups 2> /dev/null|grep option.value=|sed -e 's/^.*option.value="\(.*\)"/\1/g' > $GROUPLIST
