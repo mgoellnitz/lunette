@@ -393,29 +393,36 @@ fi
 
 if [ ! -z "$UNTIS" ] ; then
   UNTIS_DIR=$(dirname $UNTIS_NEXT_LESSON)
-  # timetable can be fetched silently
-  if [ ! -z "$UNTIS_URL" ] ; then
-    $UNTIS_DIR/fetchtimetable.sh
-  fi
   echo $UNTIS_NEXT_LESSON -k -z -f "$FORM" -s "$COURSE"
   UNTIS_TIME=$($UNTIS_NEXT_LESSON -z -f "$FORM" -s "$COURSE")
   if [ $(echo "$UNTIS_TIME"|grep "^20"|wc -l) -eq 0 ] ; then
-    if [ ! -z "$UNTIS_HOST" ] && [ ! -z "$UNTIS_SCHOOL" ] ; then
-      $UNTIS_DIR/fetchtimetable.sh -i
+    if [ "$(echo "$UNTIS_URL"|grep ':'|wc -l)" -gt 0 ] ; then
+      # timetable can be fetched silently
+      $UNTIS_DIR/fetchtimetable.sh
       UNTIS_TIME=$($UNTIS_NEXT_LESSON -k -z -f "$FORM" -s "$COURSE")
+    else
+      if [ ! -z "$UNTIS_HOST" ] && [ ! -z "$UNTIS_SCHOOL" ] ; then
+        if [ ! -z "$UNTIS_URL" ] ; then
+          $UNTIS_DIR/fetchtimetable.sh $UNTIS_URL
+        else
+          $UNTIS_DIR/fetchtimetable.sh -i
+        fi
+        UNTIS_TIME=$($UNTIS_NEXT_LESSON -k -z -f "$FORM" -s "$COURSE")
+      fi
     fi
   fi
-  if [ $(echo "$UNTIS_TIME"|grep "^20"|wc -l) -eq 0 ] ; then
-    text_info Untis no_timetable
+  if [ "$UNTIS_TIME" = '?' ] ; then
+    text_info Untis no_lesson "$COURSE" "$FORM"
+    ENDDATE=$(select_date enddate 6 20)
   else
-    if [ "$UNTIS_TIME" = '?' ] ; then
+    if [ $(echo "$UNTIS_TIME"|grep "^20"|wc -l) -eq 0 ] ; then
       text_info Untis no_timetable
-      echo "WARNING: Could not find upcoming lesson for $COURSE in form $FORM in your untis timetable."
+      ENDDATE=$(select_date enddate 6 20)
     else
       if [ -z "$(uname -v|grep Darwin)" ] ; then
         ENDDATE=$(date -d "TZ=\"UTC\" $UNTIS_TIME" "+%d.%m.%Y %H:%M")
       else
-        ENDDATE=$(date -jf "%Y%m%d %H%M" "$(next-lesson.sh -f 11 -s Bio)" "+%d.%m.%Y %H:%M")
+        ENDDATE=$(date -jf "%Y%m%d %H%M %z" "$UNTIS_TIME +0000" "+%d.%m.%Y %H:%M")
       fi
     fi
   fi

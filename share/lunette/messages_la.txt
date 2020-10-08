@@ -49,6 +49,7 @@ type_text = Text
 type_files = Data
 no_subject = Nulla disciplina recta datur ({}).
 no_timetable = Admonitio\: Nulla data propositi
+no_lesson = Admonitio\: Hora pro {} in {} in propositum tuum non inventus est.
 ambigous_person = Descriptio personae persona sola non describit. Accuratior scribere debes.
 button_ok = Bene
 button_yes = Annuo

@@ -49,6 +49,7 @@ type_text = Text
 type_files = File(s)
 no_subject = No (valid) school subject given ({}).
 no_timetable = Warning\: Current Untis timetable data is missing.
+no_lesson = Warning\: Could not find upcoming lesson for {} in {} in your untis timetable.
 ambigous_person = Person specification does not refer to a single user. Please be more specific\:
 button_ok = Ok
 button_yes = Yes

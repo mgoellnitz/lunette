@@ -49,6 +49,7 @@ type_text = Texto
 type_files = Archivo(s)
 no_subject = No se ha especificado ningún identificador de asunto (válido) ('Tag') ({}).
 no_timetable = Advertencia\: no hay datos de horarios actuales disponibles
+no_lesson = 
 ambigous_person = La información personal no describe exactamente a un usuario. Introduzca el nombre de usuario de forma más precisa\:
 button_ok = Aceptar
 button_yes = Si

@@ -49,6 +49,7 @@ type_text = Texte
 type_files = Fichier(s)
 no_subject = Aucune matière scolaire (valide) donnée ({}).
 no_timetable = Aucun horaire disponible. Veuillez d'abord récupérer les données de l'horaire actuel avec fetchtimetable.sh.
+no_lesson = 
 ambigous_person = La spécification de personne ne fait pas référence à un seul utilisateur. Veuillez être plus précis\:
 button_ok = Valider
 button_yes = Oui
