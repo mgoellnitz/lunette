@@ -17,7 +17,7 @@
 #
 MYNAME=`basename $0`
 WD=$(pwd|sed -e 's/\//\\\//g')
-MYDIR=$(dirname $0|sed -e s/^\\./$WD/g|sed -e 's/\(^[a-zA-Z]\)/'$WD'\/\1/g')
+MYDIR=$(dirname $0|sed -e s/^\\./"$WD"/g|sed -e 's/\(^[a-zA-Z]\)/'"$WD"'\/\1/g')
 LIBDIR=$MYDIR/../share/lunette
 source $LIBDIR/lib.sh
 TMPFILE="/tmp/lunette.html"
