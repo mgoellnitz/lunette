@@ -43,7 +43,7 @@ while [ "$PSTART" = "-" ] ; do
   fi
   if [ "$1" = "-l" ] ; then
     shift
-    LANGUAGE=${1}
+    set_language "$1" "$LANGUAGE" lock
   fi
   shift
   PSTART=`echo $1|sed -e 's/^\(.\).*/\1/g'`

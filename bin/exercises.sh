@@ -52,7 +52,7 @@ while [ "$PSTART" = "-" ] ; do
   fi
   if [ "$1" = "-l" ] ; then
     shift
-    export LANGUAGE=${1}
+    set_language "$1" "$LANGUAGE" lock
   fi
   if [ "$1" = "-p" ] ; then
     URLADDON='?filter%5Bstatus%5D=past'

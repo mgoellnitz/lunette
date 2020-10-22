@@ -39,11 +39,24 @@ for l in $(echo "$LANGUAGE"|sed -e 's/_[a-zA-Z][a-zA-Z]//g'|sed -e 's/:/ /g') ; 
 done
 FILENAME=
 DONE=
-if [ -z "$LANGUAGE" ] ; then
-  LANGUAGE=$(echo $LANG|cut -d '_' -f 1)
-  if [ -z "$LANGUAGE" ] ; then
-    LANGUAGE="de"
+
+# set $1 as the language to use with an optional default $2 $3 places a lock for subsequent changes
+function set_language {
+  # echo "SET LANGUAGE $1 $2 $3 ($LANGUAGE_LOCK)"
+  if [ -z "$LANGUAGE_LOCK" ] ; then
+    if [ -f $LIBDIR/messages_$1.txt ] ; then
+      LANGUAGE=$1
+      if [ ! -z "$3" ] ; then
+        LANGUAGE_LOCK=lock
+      fi
+    else
+      LANGUAGE=$2
+    fi
   fi
+}
+
+if [ -z "$LANGUAGE" ] ; then
+  set_language "$(echo $LANG|cut -d '_' -f 1)" "de"
 fi
 
 # localized message translation $1 is a message key

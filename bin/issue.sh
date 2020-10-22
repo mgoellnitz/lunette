@@ -111,7 +111,7 @@ while [ "$PSTART" = "-" ] ; do
   fi
   if [ "$1" = "-l" ] ; then
     shift
-    LANGUAGE=${1}
+    set_language "$1" "$LANGUAGE" lock
   fi
   if [ "$1" = "-m" ] ; then
     shift
@@ -211,6 +211,9 @@ if [ -z "$PARTICIPANTUSER" ] && [ -z "$PARTICIPANTGROUP" ] ; then
     echo ""
     usage
   else
+    TAGNAME=$(text_input subject subject_tag "$TAGNAME")
+    set_language $(echo $TAGNAME|sed -e 's/Span/Esp/g'|sed -e 's/^\([A-Za-z][A-Za-z]\).*/\1/g'|tr [:upper:] [:lower:]) $LANGUAGE
+
     FORM=$(text_input form_title input_form "$SCHOOL_FORM")
     if [ ! -z "$FORM" ] ; then
       TITLEPREFIX="$FORM "
@@ -265,7 +268,6 @@ if [ -z "$PARTICIPANTUSER" ] && [ -z "$PARTICIPANTGROUP" ] ; then
       PARTICIPANTGROUP=$(list_select participants select_group group $(grep -E "$BESTFILTER" $GROUPLIST))
     fi
     # echo Group: $PARTICIPANTGROUP
-    TAGNAME=$(text_input subject subject_tag "$TAGNAME")
     STARTDATE=$(select_date startdate 0 9)
     if [ -x "$UNTIS_NEXT_LESSON" ] ; then
       if [ $(question Untis ask_untis) ] ; then

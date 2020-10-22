@@ -30,7 +30,7 @@ while [ "$PSTART" = "-" ] ; do
   fi
   if [ "$1" = "-l" ] ; then
     shift
-    export LANGUAGE=${1}
+    set_language "$1" "$LANGUAGE" lock
   fi
   shift
   PSTART=`echo $1|sed -e 's/^\(.\).*/\1/g'`
@@ -47,7 +47,7 @@ if [ ! -z "$PROFILE" ] && [ ! -z "$GUI" ] ; then
   if [ -z "$SESSIONCHECK" ] ; then
     for tag in $(grep option.va $TMPFILE |sed -e 's/.*"\(.*\)".*/\1/g'|grep ^[0-9]) ; do
       value=$(grep -A2 value.\"$tag\" $TMPFILE|tail -1|sed -e 's/\ *>\([A-Za-z][A-Za-z\ ]*\).*/\1/g')
-      # echo "$tag: $value"
+      echo "$tag: $value"
       TAGS=$(echo "${TAGS}$(echo $value|sed -e 's/\ /_/g')\n")
     done
     ISERV_TAG=$(list_select subject_selection default_subject subject_tag $(echo -e "$TAGS")|sed -e 's/_/ /g')
