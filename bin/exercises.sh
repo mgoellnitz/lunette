@@ -113,7 +113,7 @@ curl -b ~/.iserv.$USERNAME $URL 2> /dev/null > $CSVFILE
 FIRST=first
 while IFS='' read -r LINE || [[ -n "$LINE" ]]; do
   # echo "Line: $LINE"
-  # echo "$LINE"|sed -e 's/;\(.*\)$/\1/'
+  # echo "$LINE"|sed -e 's/^\(.*\);\([^;]*\)$/\1 -- \2/'
   RESPONSE=$(echo "$LINE"|sed -e 's/^\(.*\);\([^;]*\)$/\2/')
   LINE=$(echo "$LINE"|sed -e 's/^\(.*\);\([^;]*\)$/\1/')
   DONE=$(echo "$LINE"|sed -e 's/^\(.*\);\([^;]*\)$/\2/')
@@ -132,10 +132,10 @@ while IFS='' read -r LINE || [[ -n "$LINE" ]]; do
       OUTPUT="$OUTPUT$TAGS: "
     fi
     OUTPUT="$OUTPUT$TITLE ($STARTDATE -> $ENDDATE)"
-    if [ -z "$DONE" ] ; then
+    if [ -z "$DONE" ] || [ "$DONE" = "Nein" ] ; then
       OUTPUT="$OUTPUT *"
     fi
-    OUTPUT="$OUTPUT $RESPONSE"
+    OUTPUT="$OUTPUT $(echo $RESPONSE|sed -e 's/Nein//g'|sed -e 's/Ja/<-/g')"
     if [ ! -z "$(echo "$OUTPUT"|grep "$FILTER")" ] ; then
       echo "$OUTPUT"
       if [ ! -z "$DOWNLOAD" ] ; then
