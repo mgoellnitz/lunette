@@ -106,11 +106,16 @@ fi
 
 URL=$BACKEND/exercise$URLADDON
 curl -b ~/.iserv.$USERNAME $URL 2> /dev/null|grep https|grep exercise.show | \
-      sed -e 's/^.*exercise.show.\([0-9]*\)\"./\1 /g'|sed -e 's/..a...td.*$//g'|grep "${FILTER}" > $IDFILE
+      sed -e 's/^.*exercise.show.\([0-9]*\)\"./\1 /g'| \
+      sed -e 's/..a...td..td.class="iserv-admin-list-field iserv-admin-list-field-date" data-sort="[0-9][0-9]*".\([0-9][0-9\.]*\).*$/ \1/g'| \
+      grep "${FILTER}" > $IDFILE
 
-URL="$BACKEND/exercise.csv$URLADDON&sort%5Bby%5D=enddate&sort%5Bdir%5D=DESC"
-curl -b ~/.iserv.$USERNAME $URL 2> /dev/null > $CSVFILE
-FIRST=first
+# Sorting doesn't seem to work
+# URL="$BACKEND/exercise.csv$URLADDON&sort%5Bby%5D=enddate&sort%5Bdir%5D=ASC"
+URL="$BACKEND/exercise.csv$URLADDON"
+curl -b ~/.iserv.$USERNAME $URL 2> /dev/null|sort -t ';' -k 3 -r > $CSVFILE
+tail -$[ $(cat $CSVFILE|wc -l) - 1 ] $CSVFILE > $CSVFILE.tmp
+mv $CSVFILE.tmp $CSVFILE
 while IFS='' read -r LINE || [[ -n "$LINE" ]]; do
   # echo "Line: $LINE"
   # echo "$LINE"|sed -e 's/^\(.*\);\([^;]*\)$/\1 -- \2/'
@@ -124,30 +129,26 @@ while IFS='' read -r LINE || [[ -n "$LINE" ]]; do
   LINE=$(echo "$LINE"|sed -e 's/^\(.*\);\([^;]*\)$/\1/')
   STARTDATE=$(echo "$LINE"|sed -e 's/^\(.*\);\([^;]*\)$/\2/')
   LINE=$(echo "$LINE"|sed -e 's/^\(.*\);\([^;]*\)$/\1/')
-  TITLE=$(echo "$LINE"|sed -e 's/^\(.*\);\([^;]*\)$/\2/'|sed -e 's/^"//g'|sed -e 's/"$//g')
-  if [ -z "$FIRST" ] ; then
-    ID=$(grep "$TITLE" $IDFILE|cut -d ' ' -f 1)
-    OUTPUT="$ID "
-    if [ ! -z "$TAGS" ] ; then
-      OUTPUT="$OUTPUT$TAGS: "
-    fi
-    OUTPUT="$OUTPUT$TITLE ($STARTDATE -> $ENDDATE)"
-    if [ -z "$DONE" ] || [ "$DONE" = "Nein" ] ; then
-      OUTPUT="$OUTPUT *"
-    fi
-    OUTPUT="$OUTPUT $(echo $RESPONSE|sed -e 's/Nein//g'|sed -e 's/Ja/<-/g')"
-    if [ ! -z "$(echo "$OUTPUT"|grep "$FILTER")" ] ; then
-      echo "$OUTPUT"
-      if [ ! -z "$DOWNLOAD" ] ; then
-        if [ -x $MYDIR/exercise.sh ] ; then
-          FOLDER="$(echo $TITLE|sed -e 's/[\.\ ]/_/g'|sed -e 's/^\-//g'|sed -e 's/_$//g'|sed -e 's/^_//g')"
-          mkdir -p $FOLDER
-          (cd $FOLDER ; "$MYDIR/exercise.sh" -d $ID > $FOLDER.txt)
-        fi
+  TITLE=$(echo "$LINE"|sed -e 's/^\(.*\);\([^;]*\)$/\2/'|sed -e 's/^"//g'|sed -e 's/"$//g'|sed -e 's/""/"/g')
+  ID=$(grep "$(echo $TITLE|sed -e 's/"/\&quot;/g') $STARTDATE" $IDFILE|cut -d ' ' -f 1)
+  OUTPUT="$ID "
+  if [ ! -z "$TAGS" ] ; then
+    OUTPUT="$OUTPUT$TAGS: "
+  fi
+  OUTPUT="$OUTPUT$TITLE ($STARTDATE -> $ENDDATE)"
+  if [ -z "$DONE" ] || [ "$DONE" = "Nein" ] ; then
+    OUTPUT="$OUTPUT *"
+  fi
+  OUTPUT="$OUTPUT $(echo $RESPONSE|sed -e 's/Nein//g'|sed -e 's/Ja/<-/g')"
+  if [ ! -z "$(echo "$OUTPUT"|grep "$FILTER")" ] ; then
+    echo "$OUTPUT"
+    if [ ! -z "$DOWNLOAD" ] ; then
+      if [ -x $MYDIR/exercise.sh ] ; then
+        FOLDER="$(echo $TITLE|sed -e 's/[\.\ ]/_/g'|sed -e 's/^\-//g'|sed -e 's/_$//g'|sed -e 's/^_//g')"
+        mkdir -p $FOLDER
+        (cd $FOLDER ; "$MYDIR/exercise.sh" -d $ID > $FOLDER.txt)
       fi
     fi
-  else
-    FIRST=
   fi
 done < $CSVFILE
 
