@@ -116,16 +116,17 @@ fi
 DESC_TAIL_COUNT=$(echo $[ $LINE_COUNT - $DESC_START_LINE ])
 DESC_LINE_COUNT=$(tail -$DESC_TAIL_COUNT $TMPFILE|grep -n '<.tr'|cut -d ':' -f 1|head -1)
 
-CORR_START_LINE=$(cat $TMPFILE|grep -n -A1 panel-body|grep ':'|tail -1|cut -d ':' -f 1)
+# Find the last (second) panel body and use the SUBSEQUENT line
+CORR_START_LINE=$(cat $TMPFILE|grep -n -A1 panel-body|grep '-'|tail -1|cut -d '-' -f 1)
 CORR_TAIL_COUNT=$(echo $[ $LINE_COUNT - $CORR_START_LINE ])
-CORR_LINE_COUNT=$(tail -$CORR_TAIL_COUNT $TMPFILE|grep -n '<.div'|head -1|cut -d ':' -f 1)
+CORR_LINE_COUNT=$(tail -$CORR_TAIL_COUNT $TMPFILE|grep -B2 -n '<.div'|head -1|cut -d '-' -f 1)
 
 echo ""
 echo -n $STARTDATE 
 echo -n ' -> ' 
 echo -n $ENDDATE
 echo ": $TITLE ($AUTHOR)"
-tail -$DESC_TAIL_COUNT $TMPFILE|head -$DESC_LINE_COUNT|sed -e 's/<br..>//g'|sed -e 's/<.td>//g'|sed -e 's/<.tr>//g'|sed -e 's/^.*<td.*>//g'
+tail -$DESC_TAIL_COUNT $TMPFILE|head -$DESC_LINE_COUNT|html2text
 if [ $(cat $TMPFILE|grep iserv.img.default|wc -l) -ge 1 ] ; then
   echo ""
   echo "$(message attachments):"
@@ -143,6 +144,6 @@ fi
 if [ $(cat $TMPFILE|grep -n -A1 panel-body|grep ':'|wc -l) -gt 1 ] ; then
   echo ""
   echo "$(message feedback):"
-  tail -$CORR_TAIL_COUNT $TMPFILE|head -$CORR_LINE_COUNT|sed -e 's/<br..>//g'|sed -e 's/<.td>//g'|sed -e 's/<.tr>//g'|sed -e 's/^.*<td>//g'
+  tail -$CORR_TAIL_COUNT $TMPFILE|head -$CORR_LINE_COUNT|html2text
 fi
-rm -f $TMPFILE
+# rm -f $TMPFILE

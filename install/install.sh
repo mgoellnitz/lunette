@@ -24,12 +24,20 @@ if [ ! -z "$(uname -v|grep Darwin)" ] ; then
       brew install jq
     fi
   fi
+  if [ -z "$(which html2text)" ] ; then
+    # if [ -z "$(which brew)" ] ; then
+    #   bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+    # fi
+    if [ ! -z "$(which brew)" ] ; then
+      brew install html2text
+    fi
+  fi
 fi
-CHECK=$((which curl;which unzip;which jq;which zenity)|wc -l)
-if [ "$CHECK" -lt 4 ] ; then
+CHECK=$((which curl;which html2text;which unzip;which jq;which zenity)|wc -l)
+if [ "$CHECK" -lt 5 ] ; then
   if [ "$(which apt|wc -l)" -eq 1 ] && [ -z "$(uname -v|grep Darwin)" ] ; then
     sudo apt update
-    sudo apt install -yq curl unzip jq zenity
+    sudo apt install -yq curl html2text unzip jq zenity
   else
     if [ "$((which curl;which unzip;which jq)|wc -l)" -lt 3 ] ; then
       echo 'Please ensure that jq, unzip and curl are available from the $PATH - zenity is optional.'

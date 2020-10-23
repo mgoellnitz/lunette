@@ -11,7 +11,6 @@ objectives with a generic collection of command line scripts:
 
 * collecting tasks and materials for offline use in student's view
 * easier handling of new exercises with automated parameter selection in teacher's view
-* collecting submissions for tasks for offline use in teacher's view
 
 The scripts are mainly used with GNU/Linux but are also partially tested with
 MacOS and also Windows Systems with a `Windows Subsystem for Linux` and a Debian

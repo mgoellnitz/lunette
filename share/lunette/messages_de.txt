@@ -15,6 +15,7 @@ not_found = Datei {} nicht zu finden
 expired = Fehler\: Sitzung abgelaufen.
 enter_username_for = Nutzername für
 attachments = Anlagen
+feedback = Rückmeldung
 exercise = Aufgabe
 for = für
 no_token = Es ist kein Lehrerkürzel angegeben.

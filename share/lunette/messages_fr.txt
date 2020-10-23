@@ -15,6 +15,7 @@ not_found = Fichier {} non trouvé
 expired = Erreur\: la session a expiré.
 enter_username_for = Entrez le nom d'utilisateur pour
 attachments = Pièces jointes
+Feedback = Commentair
 exercise = Exercice
 for = pour
 no_token = Aucun jeton enseignant donné.
