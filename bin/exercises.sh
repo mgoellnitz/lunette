@@ -104,10 +104,9 @@ if [ ! -z "$SESSIONCHECK" ] ; then
   exit 1
 fi
 
-URL=$BACKEND/exercise$URLADDON
-curl -b ~/.iserv.$USERNAME $URL 2> /dev/null|grep https|grep exercise.show | \
+curl -b ~/.iserv.$USERNAME $BACKEND/exercise$URLADDON 2> /dev/null|grep https|grep exercise.show | \
       sed -e 's/^.*exercise.show.\([0-9]*\)\"./\1 /g'| \
-      sed -e 's/..a...td..td.class="iserv-admin-list-field iserv-admin-list-field-date" data-sort="[0-9][0-9]*".\([0-9][0-9\.]*\).*$/ \1/g'| \
+      sed -e 's/..a...td..td.class="iserv-admin-list-field iserv-admin-list-field-date" data-sort="[0-9][0-9]*".\([0-9][0-9\.]*\).*timeAgoCalendar..data-date..[0-9][0-9+T:\-]*..\([0-9][0-9\.]*\)\(.*\)$/ \1 \2/g'| \
       grep "${FILTER}" > $IDFILE
 
 # Sorting doesn't seem to work
@@ -130,7 +129,7 @@ while IFS='' read -r LINE || [[ -n "$LINE" ]]; do
   STARTDATE=$(echo "$LINE"|sed -e 's/^\(.*\);\([^;]*\)$/\2/')
   LINE=$(echo "$LINE"|sed -e 's/^\(.*\);\([^;]*\)$/\1/')
   TITLE=$(echo "$LINE"|sed -e 's/^\(.*\);\([^;]*\)$/\2/'|sed -e 's/^"//g'|sed -e 's/"$//g'|sed -e 's/""/"/g')
-  ID=$(grep "$(echo $TITLE|sed -e 's/"/\&quot;/g') $STARTDATE" $IDFILE|cut -d ' ' -f 1)
+  ID=$(grep "$(echo $TITLE|sed -e 's/"/\&quot;/g') $STARTDATE $ENDDATE" $IDFILE|cut -d ' ' -f 1)
   OUTPUT="$ID "
   if [ ! -z "$TAGS" ] ; then
     OUTPUT="$OUTPUT$TAGS: "

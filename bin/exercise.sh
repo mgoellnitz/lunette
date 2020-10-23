@@ -146,4 +146,4 @@ if [ $(cat $TMPFILE|grep -n -A1 panel-body|grep ':'|wc -l) -gt 1 ] ; then
   echo "$(message feedback):"
   tail -$CORR_TAIL_COUNT $TMPFILE|head -$CORR_LINE_COUNT|html2text
 fi
-# rm -f $TMPFILE
+rm -f $TMPFILE
