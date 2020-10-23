@@ -143,7 +143,7 @@ while IFS='' read -r LINE || [[ -n "$LINE" ]]; do
     echo "$OUTPUT"
     if [ ! -z "$DOWNLOAD" ] ; then
       if [ -x $MYDIR/exercise.sh ] ; then
-        FOLDER="$(echo $TITLE|sed -e 's/[\.\ ]/_/g'|sed -e 's/^\-//g'|sed -e 's/_$//g'|sed -e 's/^_//g')"
+        FOLDER="$(echo $TITLE|sed -e 's/[\.\ ]/_/g'|sed -e 's/^\-//g'|sed -e 's/_$//g'|sed -e 's/^_//g')_$ID"
         mkdir -p $FOLDER
         (cd $FOLDER ; "$MYDIR/exercise.sh" -d $ID > $FOLDER.txt)
       fi
