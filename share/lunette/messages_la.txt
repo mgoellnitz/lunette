@@ -15,6 +15,7 @@ not_found = Nulla data nominis {}
 expired = Erratum\: Annuntiatum derelictum.
 enter_username_for = Nomen usoris pro
 attachments = Additamenta
+submission = Eventum
 feedback = Responsio
 exercise = Pensum
 for = pro

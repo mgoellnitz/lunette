@@ -15,6 +15,7 @@ not_found = File not found\: {}
 expired = Error\: Session expired.
 enter_username_for = Enter username for
 attachments = Attachments
+submission = Submission
 feedback = Feedback
 exercise = Exercise
 for = for

@@ -17,7 +17,7 @@
 #
 MYNAME=`basename $0`
 WD=$(pwd|sed -e 's/\//\\\//g')
-MYDIR=$(dirname $0|sed -e s/^\\./"$WD"/g|sed -e 's/\(^[a-zA-Z]\)/'"$WD"'\/\1/g')
+MYDIR=$(dirname $0|sed -e s/^\\.\\./"$WD"\\/../g|sed -e s/^\\./"$WD"/g)
 LIBDIR=$MYDIR/../share/lunette
 source $LIBDIR/lib.sh
 TMPFILE="/tmp/lunette.html"
@@ -143,7 +143,7 @@ while IFS='' read -r LINE || [[ -n "$LINE" ]]; do
     echo "$OUTPUT"
     if [ ! -z "$DOWNLOAD" ] ; then
       if [ -x $MYDIR/exercise.sh ] ; then
-        FOLDER="$(echo $TITLE|sed -e 's/[\.\ ]/_/g'|sed -e 's/^\-//g'|sed -e 's/_$//g'|sed -e 's/^_//g')_$ID"
+        FOLDER="$(echo $TITLE|sed -e 's/[;:\\|\/\.\ ]/_/g'|sed -e 's/^\-//g'|sed -e 's/_$//g'|sed -e 's/^_//g')_$ID"
         mkdir -p $FOLDER
         (cd $FOLDER ; "$MYDIR/exercise.sh" -d $ID > $FOLDER.txt)
       fi

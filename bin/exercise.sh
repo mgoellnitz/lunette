@@ -116,11 +116,6 @@ fi
 DESC_TAIL_COUNT=$(echo $[ $LINE_COUNT - $DESC_START_LINE ])
 DESC_LINE_COUNT=$(tail -$DESC_TAIL_COUNT $TMPFILE|grep -n '<.tr'|cut -d ':' -f 1|head -1)
 
-# Find the last (second) panel body and use the SUBSEQUENT line
-CORR_START_LINE=$(cat $TMPFILE|grep -n -A1 panel-body|grep '-'|tail -1|cut -d '-' -f 1)
-CORR_TAIL_COUNT=$(echo $[ $LINE_COUNT - $CORR_START_LINE ])
-CORR_LINE_COUNT=$(tail -$CORR_TAIL_COUNT $TMPFILE|grep -B2 -n '<.div'|head -1|cut -d '-' -f 1)
-
 echo ""
 echo -n $STARTDATE 
 echo -n ' -> ' 
@@ -134,14 +129,42 @@ if [ $(cat $TMPFILE|grep iserv.img.default|wc -l) -ge 1 ] ; then
   if [ "$DOWNLOAD" = "true" ] ; then
     for d in $(cat $TMPFILE|grep iserv.img.default|sed -e 's/^.*li.class.*a.href.".*\(\/exercise.*\)"..img.class.*src=".*png".\(.*\)/\1/g') ; do
       FILENAME=$(cat $TMPFILE|grep iserv.img.default|grep $d|sed -e 's/^.*li.class.*a.href.".*\(\/exercise.*\)"..img.class.*src=".*png".\(.*\)/\2/g')
-      # echo $BACKEND$d $EXERCISE/$FILENAME
+      # echo $EXERCISE: $BACKEND$d $FILENAME
       curl  -b ~/.iserv.$USERNAME -o "$FILENAME" $BACKEND$d 2> /dev/null
-      # curl  -b ~/.iserv.$USERNAME -o $EXERCISE/$(echo $d|cut -d '/' -f 4) $BACKEND$d
     done
   fi
 fi
 
+if [ $(cat $TMPFILE|grep -n -A1 panel-body|grep ':'|wc -l) -ge 1 ] ; then
+  # Find the first panel body and use the SUBSEQUENT line
+  CORR_START_LINE=$(cat $TMPFILE|grep -n -A1 panel-body|grep '^[0-9][0-9]*-'|head -1|cut -d '-' -f 1)
+  CORR_TAIL_COUNT=$(echo $[ $LINE_COUNT - $CORR_START_LINE + 1 ])
+  CORR_LINE_COUNT=$(tail -$CORR_TAIL_COUNT $TMPFILE|grep -n -B1 '<.div'|head -1|cut -d '-' -f 1)
+
+  echo ""
+  echo "$(message submission):"
+  if [ $(tail -$CORR_TAIL_COUNT $TMPFILE|head -$CORR_LINE_COUNT|grep "Ihre abgegebenen Dateien"|wc -l) -ge 1 ] ; then
+    if [ $(tail -$CORR_TAIL_COUNT $TMPFILE|head -$CORR_LINE_COUNT|grep "Keine Dateien eingereicht"|wc -l) -eq 0 ] ; then
+      for d in $(tail -$CORR_TAIL_COUNT $TMPFILE|head -$CORR_LINE_COUNT|grep a.href=..iserv|sed -e 's/^.*a.href=".*\(\/exercise.*\)".class="[a-z][a-z\-]*">\(.*\)..a...td.*$/\1/g') ; do
+        FILENAME=$(tail -$CORR_TAIL_COUNT $TMPFILE|head -$CORR_LINE_COUNT|grep a.href=..iserv|sed -e 's/^.*a.href=".*\(\/exercise.*\)".class="[a-z][a-z\-]*">\(.*\)..a...td.*$/\2/g')
+        # echo $BACKEND$d $FILENAME
+        echo "$FILENAME"
+        if [ "$DOWNLOAD" = "true" ] ; then
+          curl  -b ~/.iserv.$USERNAME -o "$FILENAME" $BACKEND$d 2> /dev/null
+        fi
+      done
+    fi
+  else
+    tail -$CORR_TAIL_COUNT $TMPFILE|head -$CORR_LINE_COUNT|html2text
+  fi
+fi
+
 if [ $(cat $TMPFILE|grep -n -A1 panel-body|grep ':'|wc -l) -gt 1 ] ; then
+  # Find the last (second) panel body and use the SUBSEQUENT line
+  CORR_START_LINE=$(cat $TMPFILE|grep -n -A1 panel-body|grep '^[0-9][0-9]*-'|tail -1|cut -d '-' -f 1)
+  CORR_TAIL_COUNT=$(echo $[ $LINE_COUNT - $CORR_START_LINE ])
+  CORR_LINE_COUNT=$(tail -$CORR_TAIL_COUNT $TMPFILE|grep -B2 -n '<.div'|head -1|cut -d '-' -f 1)
+
   echo ""
   echo "$(message feedback):"
   tail -$CORR_TAIL_COUNT $TMPFILE|head -$CORR_LINE_COUNT|html2text
