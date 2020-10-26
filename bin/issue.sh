@@ -349,7 +349,7 @@ if [ -z "$TAGS" ] ; then
   usage
 fi
 
-COURSE=$(echo $TAGNAME|sed -e 's/^\([A-Za-z][A-Za-z][A-Za-z]\).*/\1/g'|sed -e 's/Nat/NuT/g'|sed -e 's/Son//g'|sed -e 's/Org//g')
+COURSE=$(echo $TAGNAME|sed -e 's/^\([A-Za-z][A-Za-z][A-Za-z]\).*/\1/g'|sed -e 's/Nat/N/g'|sed -e 's/Sem/s-/g'|sed -e 's/Son//g'|sed -e 's/Org//g')
 COURSELOWER=$(echo $COURSE| tr [:upper:] [:lower:])
 if [ ! -z "$PARTICIPANTGROUP" ] ; then
   FILTER="$PARTICIPANTGROUP"
