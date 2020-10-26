@@ -22,6 +22,7 @@ source $LIBDIR/lib.sh
 TMPFILE="/tmp/lunette.html"
 GROUPLIST="/tmp/lunette.groups"
 USERLIST="/tmp/lunette.users"
+ANALYZE="/tmp/lunette.analyze"
 UNTIS_NEXT_LESSON=$(which next-lesson.sh)
 if [ -z "$UNTIS_NEXT_LESSON" ] ; then
   UNTIS_NEXT_LESSON="./next-lesson.sh"
@@ -487,10 +488,10 @@ if [ ! -z "$ISSUE" ] ; then
   EXERCISE="${EXERCISE}&exercise[uploadedTempFiles][picker][]="
   EXERCISE="${EXERCISE}&exercise[actions][submit]="
   EXERCISE="${EXERCISE}&exercise[_token]=$TOKEN"
-  # echo $EXERCISE
+  echo $EXERCISE > $ANALYZE
   curl -b ~/.iserv.$USERNAME -D - -H "Content-type: application/x-www-form-urlencoded" \
-       -X POST -d "$EXERCISE" --data-urlencode "exercise[text]=$CONTENT" \
-       $BACKEND/exercise/manage/exercise/add 2> /dev/null > /tmp/lunette.analyze
+       -X POST -d "$EXERCISE" --data-urlencode "exercise[html]=$CONTENT" \
+       $BACKEND/exercise/manage/exercise/add 2> /dev/null >> $ANALYZE
   # echo "System result URL: $DATA"
   text_info issued_title issued_text
 fi
