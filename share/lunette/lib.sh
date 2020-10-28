@@ -63,7 +63,7 @@ fi
 function message {
   local FILENAME=$LIBDIR/messages_$LANGUAGE.txt
   if [ ! -f "$FILENAME" ] ; then
-    FILENAME=$LIBDIR/messages.txt
+    FILENAME=$LIBDIR/messages_en.txt
   fi
   
   local RESULT=
