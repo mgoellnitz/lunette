@@ -23,6 +23,10 @@ else
 fi
 if [ -z "$(which $ZENITY)" ] ; then
   ZENITY=
+else
+  if [ $($ZENITY --help 2>&1|grep Unable|wc -l) -eq 1 ] ; then
+    ZENITY=
+  fi
 fi
 GUI=
 if [ ! -z "$ZENITY" ] || [ ! -z "$(uname -v|grep Darwin)" ] ; then
