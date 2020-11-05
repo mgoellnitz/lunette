@@ -185,6 +185,14 @@ gets created with a name following the title of the exercise. In this directory
 a textfile resembles the exercise and the attachments are downloaded next to
 it.
 
+If you are only interested in tasks which didn't receive any submission by you
+so far, you can filter for open exercises with the  `-o` parameter.
+
+```
+$ exercises.sh -o -u claire
+Exercises for claire.delune@https://bornbrook.de/iserv
+```
+
 It is also possible to list past exercises with an optional `-p` parameter.
 
 ```

@@ -28,6 +28,7 @@ function usage {
    echo "Usage: $MYNAME [-p] [-u pattern] [filter]"
    echo ""
    echo "  -p           list exercises from the past"
+   echo "  -o           only list open exercises"
    echo "  -d           download exercises including attachments into separate directories"
    echo "  -l language  set ISO-639 language code for output messages (except this one)"
    echo "  -u pattern   username or fragment of a username to list exercises for"
@@ -54,6 +55,9 @@ while [ "$PSTART" = "-" ] ; do
     shift
     set_language "$1" "$LANGUAGE" lock
   fi
+  if [ "$1" = "-o" ] ; then
+    OPEN=onlyOpen
+  fi
   if [ "$1" = "-p" ] ; then
     URLADDON='?filter%5Bstatus%5D=past'
   fi
@@ -67,6 +71,7 @@ done
 FILTER=${1:-.*}
 
 BACKEND=$ISERV_BACKEND
+URL="$BACKEND/exercise$URLADDON"
 PROFILE=$(ls ~/.iserv.*${PATTERN}*|head -1)
 if [ -z "$PROFILE" ] ; then
   echo "$(message no_session)"
@@ -84,17 +89,17 @@ if [ -z "$PROFILE" ] ; then
   BACKEND=$(cat $PROFILE|grep ISERV_BACKEND|sed -e 's/#.ISERV_BACKEND=//g')
   PROFILE=$(basename $PROFILE)
   USERNAME=$(echo ${PROFILE#.iserv.})
-  curl -b ~/.iserv.$USERNAME $BACKEND/exercise 2> /dev/null >$TMPFILE
+  curl -b ~/.iserv.$USERNAME $URL 2> /dev/null >$TMPFILE
 else
   BACKEND=$(cat $PROFILE|grep ISERV_BACKEND|sed -e 's/#.ISERV_BACKEND=//g')
   PROFILE=$(basename $PROFILE)
   USERNAME=$(echo ${PROFILE#.iserv.})
-  curl -b ~/.iserv.$USERNAME $BACKEND/exercise 2> /dev/null >$TMPFILE
+  curl -b ~/.iserv.$USERNAME $URL 2> /dev/null >$TMPFILE
   SESSIONCHECK=$(grep 'Redirecting.to.*.login' $TMPFILE)
   if [ ! -z "$SESSIONCHECK" ] ; then
     echo "$(message expired)"
     $MYDIR/createsession.sh -k $USERNAME $BACKEND
-    curl -b ~/.iserv.$USERNAME $BACKEND/exercise 2> /dev/null >$TMPFILE
+    curl -b ~/.iserv.$USERNAME $URL 2> /dev/null >$TMPFILE
   fi
 fi
 echo "$(message exercises_for) $USERNAME@$BACKEND"
@@ -104,51 +109,58 @@ if [ ! -z "$SESSIONCHECK" ] ; then
   exit 1
 fi
 
-curl -b ~/.iserv.$USERNAME $BACKEND/exercise$URLADDON 2> /dev/null|grep https|grep exercise.show | \
+cat $TMPFILE 2> /dev/null|grep https|grep exercise.show | \
       sed -e 's/^.*exercise.show.\([0-9]*\)\"./\1 /g'| \
       sed -e 's/..a...td..td.class="iserv-admin-list-field iserv-admin-list-field-date" data-sort="[0-9][0-9]*".\([0-9][0-9\.]*\).*timeAgoCalendar..data-date..[0-9][0-9+T:\-]*..\([0-9][0-9\.]*\)\(.*\)$/ \1 \2/g'| \
       grep "${FILTER}" > $IDFILE
 
-# Sorting doesn't seem to work
-# URL="$BACKEND/exercise.csv$URLADDON&sort%5Bby%5D=enddate&sort%5Bdir%5D=ASC"
-URL="$BACKEND/exercise.csv$URLADDON"
-curl -b ~/.iserv.$USERNAME $URL 2> /dev/null|sort -t ';' -k 3 -r > $CSVFILE
-tail -$[ $(cat $CSVFILE|wc -l) - 1 ] $CSVFILE > $CSVFILE.tmp
-mv $CSVFILE.tmp $CSVFILE
-while IFS='' read -r LINE || [[ -n "$LINE" ]]; do
-  # echo "Line: $LINE"
-  # echo "$LINE"|sed -e 's/^\(.*\);\([^;]*\)$/\1 -- \2/'
-  RESPONSE=$(echo "$LINE"|sed -e 's/^\(.*\);\([^;]*\)$/\2/')
-  LINE=$(echo "$LINE"|sed -e 's/^\(.*\);\([^;]*\)$/\1/')
-  DONE=$(echo "$LINE"|sed -e 's/^\(.*\);\([^;]*\)$/\2/')
-  LINE=$(echo "$LINE"|sed -e 's/^\(.*\);\([^;]*\)$/\1/')
-  TAGS=$(echo "$LINE"|sed -e 's/^\(.*\);\([^;]*\)$/\2/')
-  LINE=$(echo "$LINE"|sed -e 's/^\(.*\);\([^;]*\)$/\1/')
-  ENDDATE=$(echo "$LINE"|sed -e 's/^\(.*\);\([^;]*\)$/\2/')
-  LINE=$(echo "$LINE"|sed -e 's/^\(.*\);\([^;]*\)$/\1/')
-  STARTDATE=$(echo "$LINE"|sed -e 's/^\(.*\);\([^;]*\)$/\2/')
-  LINE=$(echo "$LINE"|sed -e 's/^\(.*\);\([^;]*\)$/\1/')
-  TITLE=$(echo "$LINE"|sed -e 's/^\(.*\);\([^;]*\)$/\2/'|sed -e 's/^"//g'|sed -e 's/"$//g'|sed -e 's/""/"/g')
-  ID=$(grep "$(echo $TITLE|sed -e 's/"/\&quot;/g') $STARTDATE $ENDDATE" $IDFILE|cut -d ' ' -f 1)
-  OUTPUT="$ID "
-  if [ ! -z "$TAGS" ] ; then
-    OUTPUT="$OUTPUT$TAGS: "
+if [ $(cat $IDFILE|wc -l) -gt 0 ] ; then
+  # Sorting doesn't seem to work
+  # $BACKEND/exercise.csv$URLADDON&sort%5Bby%5D=enddate&sort%5Bdir%5D=ASC
+  curl -Lb ~/.iserv.$USERNAME $BACKEND/exercise.csv$URLADDON 2> /dev/null|sort -t ';' -k 3 -r > $CSVFILE
+  if [ $(cat $CSVFILE|wc -l) -le 0 ] ; then
+    echo "$(message expired)"
+    exit
   fi
-  OUTPUT="$OUTPUT$TITLE ($STARTDATE -> $ENDDATE)"
-  if [ -z "$DONE" ] || [ "$DONE" = "Nein" ] ; then
-    OUTPUT="$OUTPUT *"
-  fi
-  OUTPUT="$OUTPUT $(echo $RESPONSE|sed -e 's/Nein//g'|sed -e 's/Ja/<-/g')"
-  if [ ! -z "$(echo "$OUTPUT"|grep "$FILTER")" ] ; then
-    echo "$OUTPUT"
-    if [ ! -z "$DOWNLOAD" ] ; then
-      if [ -x $MYDIR/exercise.sh ] ; then
-        FOLDER="$(echo $TITLE|sed -e 's/[;:\\|\/\.\ ]/_/g'|sed -e 's/^\-//g'|sed -e 's/_$//g'|sed -e 's/^_//g')_$ID"
-        mkdir -p $FOLDER
-        (cd $FOLDER ; "$MYDIR/exercise.sh" -d $ID > $FOLDER.txt)
+  tail -$[ $(cat $CSVFILE|wc -l) - 1 ] $CSVFILE > $CSVFILE.tmp
+  mv $CSVFILE.tmp $CSVFILE
+  while IFS='' read -r LINE || [[ -n "$LINE" ]]; do
+    # echo "Line: $LINE"
+    # echo "$LINE"|sed -e 's/^\(.*\);\([^;]*\)$/\1 -- \2/'
+    RESPONSE=$(echo "$LINE"|sed -e 's/^\(.*\);\([^;]*\)$/\2/')
+    LINE=$(echo "$LINE"|sed -e 's/^\(.*\);\([^;]*\)$/\1/')
+    DONE=$(echo "$LINE"|sed -e 's/^\(.*\);\([^;]*\)$/\2/')
+    LINE=$(echo "$LINE"|sed -e 's/^\(.*\);\([^;]*\)$/\1/')
+    TAGS=$(echo "$LINE"|sed -e 's/^\(.*\);\([^;]*\)$/\2/')
+    LINE=$(echo "$LINE"|sed -e 's/^\(.*\);\([^;]*\)$/\1/')
+    ENDDATE=$(echo "$LINE"|sed -e 's/^\(.*\);\([^;]*\)$/\2/')
+    LINE=$(echo "$LINE"|sed -e 's/^\(.*\);\([^;]*\)$/\1/')
+    STARTDATE=$(echo "$LINE"|sed -e 's/^\(.*\);\([^;]*\)$/\2/')
+    LINE=$(echo "$LINE"|sed -e 's/^\(.*\);\([^;]*\)$/\1/')
+    TITLE=$(echo "$LINE"|sed -e 's/^\(.*\);\([^;]*\)$/\2/'|sed -e 's/^"//g'|sed -e 's/"$//g'|sed -e 's/""/"/g')
+    ID=$(grep "$(echo $TITLE|sed -e 's/"/\&quot;/g') $STARTDATE $ENDDATE" $IDFILE|cut -d ' ' -f 1)
+    OUTPUT="$ID "
+    if [ ! -z "$TAGS" ] ; then
+      OUTPUT="$OUTPUT$TAGS: "
+    fi
+    OUTPUT="$OUTPUT$TITLE ($STARTDATE -> $ENDDATE)"
+    if [ -z "$DONE" ] || [ "$DONE" = "Nein" ] ; then
+      OUTPUT="$OUTPUT *"
+    fi
+    OUTPUT="$OUTPUT $(echo $RESPONSE|sed -e 's/Nein//g'|sed -e 's/Ja/<-/g')"
+    if [ -z "$OPEN" ] || [ -z "$DONE" ] || [ "$DONE" = "Nein" ] ; then
+      if [ ! -z "$(echo "$OUTPUT"|grep "$FILTER")" ] ; then
+        echo "$OUTPUT"
+        if [ ! -z "$DOWNLOAD" ] ; then
+          if [ -x $MYDIR/exercise.sh ] ; then
+            FOLDER="$(echo $TITLE|sed -e 's/[;:\\|\/\.\ ]/_/g'|sed -e 's/^\-//g'|sed -e 's/_$//g'|sed -e 's/^_//g')_$ID"
+            mkdir -p $FOLDER
+            (cd $FOLDER ; "$MYDIR/exercise.sh" -d $ID > $FOLDER.txt)
+          fi
+        fi
       fi
     fi
-  fi
-done < $CSVFILE
+  done < $CSVFILE
+fi
 
-rm -f $TMPFILE $IDFILE $CSVFILE
+# rm -f $TMPFILE $IDFILE $CSVFILE
