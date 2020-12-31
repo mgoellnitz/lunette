@@ -20,7 +20,7 @@ WD=$(pwd|sed -e 's/\//\\\//g')
 MYDIR=$(dirname $0|sed -e s/^\\.\\./"$WD"\\/../g|sed -e s/^\\./"$WD"/g)
 LIBDIR=$MYDIR/../share/lunette
 source $LIBDIR/lib.sh
-TMPFILE="/tmp/lunette.html"
+TMPFILE="/tmp/lunette.tmp"
 CSVFILE="/tmp/lunette.csv"
 IDFILE="/tmp/lunette.ids"
 
@@ -163,4 +163,4 @@ if [ $(cat $IDFILE|wc -l) -gt 0 ] ; then
   done < $CSVFILE
 fi
 
-# rm -f $TMPFILE $IDFILE $CSVFILE
+rm -f $TMPFILE $IDFILE $CSVFILE
