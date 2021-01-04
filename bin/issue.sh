@@ -172,8 +172,20 @@ else
   BACKEND=$(cat $PROFILE|grep ISERV_BACKEND|sed -e 's/#.ISERV_BACKEND=//g')
   PROFILE=$(basename $PROFILE)
   USERNAME=$(echo ${PROFILE#.iserv.})
-  curl -b ~/.iserv.$USERNAME $BACKEND/exercise/manage/exercise/add 2> /dev/null >$TMPFILE
-  SESSIONCHECK=$(grep 'Redirecting.to.*.login' $TMPFILE;grep 'missing.*required.*authorization' $TMPFILE)
+  if [ -z "$(uname -v|grep Darwin)" ] ; then
+    FILETIME="$(stat -c %Y -- ~/.iserv.$USERNAME)"
+  else
+    FILETIME="$(stat -t %s -f %m -- ~/.iserv.$USERNAME)"
+  fi
+  SESSIONAGE="$(echo $[ $(date +%s) - $FILETIME ])"
+  # echo "Session age: $[ $SESSIONAGE / 60 ]m (${SESSIONAGE}s)"
+  if [ "$SESSIONAGE" -gt "7200" ] ; then
+    # echo "SESSION TOO OLD"
+    SESSIONCHECK="old"
+  else
+    curl -b ~/.iserv.$USERNAME $BACKEND/exercise/manage/exercise/add 2> /dev/null >$TMPFILE
+    SESSIONCHECK=$(grep 'Redirecting.to.*.login' $TMPFILE;grep 'missing.*required.*authorization' $TMPFILE)
+  fi
   if [ ! -z "$SESSIONCHECK" ] ; then
     message expired
     if [ -z "$LANGUAGE" ] ; then
@@ -250,7 +262,7 @@ if [ -z "$PARTICIPANTUSER" ] && [ -z "$PARTICIPANTGROUP" ] ; then
       if [ "$COUNT" -gt 0 ] && [ "$COUNT" -lt "$BESTCOUNT" ] ; then
         BESTFILTER="$FILTER"
         BESTCOUNT="$COUNT"
-      fi
+        fi
       FILTER="$FORM.$(date +%Y)"
       COUNT=$(grep "$FILTER" $GROUPLIST|wc -l)
     else

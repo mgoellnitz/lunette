@@ -78,8 +78,20 @@ else
   BACKEND=$(cat $PROFILE|grep ISERV_BACKEND|sed -e 's/#.ISERV_BACKEND=//g')
   PROFILE=$(basename $PROFILE)
   USERNAME=$(echo ${PROFILE#.iserv.})
-  curl -b ~/.iserv.$USERNAME $BACKEND/exercise 2> /dev/null >$TMPFILE
-  SESSIONCHECK=$(grep 'Redirecting.to.*.login' $TMPFILE)
+  if [ -z "$(uname -v|grep Darwin)" ] ; then
+    FILETIME="$(stat -c %Y -- ~/.iserv.$USERNAME)"
+  else
+    FILETIME="$(stat -t %s -f %m -- ~/.iserv.$USERNAME)"
+  fi
+  SESSIONAGE="$(echo $[ $(date +%s) - $FILETIME ])"
+  # echo "Session age: $[ $SESSIONAGE / 60 ]m (${SESSIONAGE}s)"
+  if [ "$SESSIONAGE" -gt "7200" ] ; then
+    # echo "SESSION TOO OLD"
+    SESSIONCHECK="old"
+  else
+    curl -b ~/.iserv.$USERNAME $BACKEND/exercise 2> /dev/null >$TMPFILE
+    SESSIONCHECK=$(grep 'Redirecting.to.*.login' $TMPFILE)
+  fi
   if [ ! -z "$SESSIONCHECK" ] ; then
     echo "$(message expired)"
     $MYDIR/createsession.sh -k $USERNAME $BACKEND

@@ -94,8 +94,20 @@ else
   BACKEND=$(cat $PROFILE|grep ISERV_BACKEND|sed -e 's/#.ISERV_BACKEND=//g')
   PROFILE=$(basename $PROFILE)
   USERNAME=$(echo ${PROFILE#.iserv.})
-  curl -b ~/.iserv.$USERNAME $URL 2> /dev/null >$TMPFILE
-  SESSIONCHECK=$(grep 'Redirecting.to.*.login' $TMPFILE)
+  if [ -z "$(uname -v|grep Darwin)" ] ; then
+    FILETIME="$(stat -c %Y -- ~/.iserv.$USERNAME)"
+  else
+    FILETIME="$(stat -t %s -f %m -- ~/.iserv.$USERNAME)"
+  fi
+  SESSIONAGE="$(echo $[ $(date +%s) - $FILETIME ])"
+  # echo "Session age: $[ $SESSIONAGE / 60 ]m (${SESSIONAGE}s)"
+  if [ "$SESSIONAGE" -gt "7200" ] ; then
+    # echo "SESSION TOO OLD"
+    SESSIONCHECK="old"
+  else
+    curl -b ~/.iserv.$USERNAME $URL 2> /dev/null >$TMPFILE
+    SESSIONCHECK=$(grep 'Redirecting.to.*.login' $TMPFILE)
+  fi
   if [ ! -z "$SESSIONCHECK" ] ; then
     echo "$(message expired)"
     $MYDIR/createsession.sh -k $USERNAME $BACKEND
@@ -113,6 +125,9 @@ cat $TMPFILE 2> /dev/null|grep https|grep exercise.show | \
       sed -e 's/^.*exercise.show.\([0-9]*\)\"./\1 /g'| \
       sed -e 's/..a...td..td.class="iserv-admin-list-field iserv-admin-list-field-date" data-sort="[0-9][0-9]*".\([0-9][0-9\.]*\).*timeAgoCalendar..data-date..[0-9][0-9+T:\-]*..\([0-9][0-9\.]*\)\(.*\)$/ \1 \2/g'| \
       grep "${FILTER}" > $IDFILE
+
+# echo -n "Number of IDs found: "
+# cat $IDFILE|wc -l
 
 if [ $(cat $IDFILE|wc -l) -gt 0 ] ; then
   # Sorting doesn't seem to work
