@@ -361,7 +361,7 @@ if [ -z "$TAGS" ] ; then
   usage
 fi
 
-COURSE=$(echo $TAGNAME|sed -e 's/^\([A-Za-z][A-Za-z][A-Za-z]\).*/\1/g'|sed -e 's/Nat/N/g'|sed -e 's/Sem/s-/g'|sed -e 's/Son//g'|sed -e 's/Org//g')
+COURSE=$(echo $TAGNAME|sed -e 's/^\([A-Za-z][A-Za-z][A-Za-z]\).*/\1/g'|sed -e 's/Son//g'|sed -e 's/Org//g')
 COURSELOWER=$(echo $COURSE| tr [:upper:] [:lower:])
 if [ ! -z "$PARTICIPANTGROUP" ] ; then
   FILTER="$PARTICIPANTGROUP"
@@ -408,13 +408,14 @@ fi
 
 if [ ! -z "$UNTIS" ] ; then
   UNTIS_DIR=$(dirname $UNTIS_NEXT_LESSON)
-  echo $UNTIS_NEXT_LESSON -k -z -f "$FORM" -s "$COURSE"
-  UNTIS_TIME=$($UNTIS_NEXT_LESSON -k -z -f "$FORM" -s "$COURSE")
+  UNTIS_COURSE=$(echo $COURSE|sed -e 's/Nat/N/g'|sed -e 's/Sem/s-/g')
+  echo $UNTIS_NEXT_LESSON -k -z -f "$FORM" -s "$UNTIS_COURSE"
+  UNTIS_TIME=$($UNTIS_NEXT_LESSON -k -z -f "$FORM" -s "$UNTIS_COURSE")
   if [ $(echo "$UNTIS_TIME"|grep "^20"|wc -l) -eq 0 ] ; then
     if [ "$(echo "$UNTIS_URL"|grep ':'|wc -l)" -gt 0 ] ; then
       # timetable can be fetched silently
       $UNTIS_DIR/fetchtimetable.sh
-      UNTIS_TIME=$($UNTIS_NEXT_LESSON -k -z -f "$FORM" -s "$COURSE")
+      UNTIS_TIME=$($UNTIS_NEXT_LESSON -k -z -f "$FORM" -s "$UNTIS_COURSE")
     else
       if [ ! -z "$UNTIS_HOST" ] && [ ! -z "$UNTIS_SCHOOL" ] ; then
         if [ ! -z "$UNTIS_URL" ] ; then
@@ -422,12 +423,12 @@ if [ ! -z "$UNTIS" ] ; then
         else
           $UNTIS_DIR/fetchtimetable.sh -i
         fi
-        UNTIS_TIME=$($UNTIS_NEXT_LESSON -k -z -f "$FORM" -s "$COURSE")
+        UNTIS_TIME=$($UNTIS_NEXT_LESSON -k -z -f "$FORM" -s "$UNTIS_COURSE")
       fi
     fi
   fi
   if [ "$UNTIS_TIME" = '?' ] ; then
-    text_info Untis no_lesson "$COURSE" "$FORM"
+    text_info Untis no_lesson "$UNTIS_COURSE" "$FORM"
     ENDDATE=$(select_date enddate 6 20)
   else
     if [ $(echo "$UNTIS_TIME"|grep "^20"|wc -l) -eq 0 ] ; then
