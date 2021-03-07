@@ -355,7 +355,7 @@ for tag in $(grep option.va $TMPFILE |sed -e 's/.*"\(.*\)".*/\1/g'|grep ^[0-9]) 
   fi
 done
 if [ -z "$TAGS" ] ; then
-  message subject_selection no_subject "$TAGNAME"
+  text_info subject_selection no_subject "$TAGNAME"
   echo ""
   rm -f $TMPFILE
   usage
